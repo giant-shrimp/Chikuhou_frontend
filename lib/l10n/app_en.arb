@@ -1,0 +1,19 @@
+{
+  "@@locale": "en",
+
+  "menu": "menu",
+  "home": "home",
+  "language": "Language",
+  "use_language": "English",
+  "account_information": "Account Information",
+  "settings": "Settings",
+  "status_settings": "Status Settings",
+  "simple_translation": "Simple Translation",
+  "faq": "FAQ",
+  "app_version": "App Version",
+  "logout": "Logout",
+
+  "walker": "Walker",
+  "runner": "Runner",
+  "senior": "Senior"
+}

@@ -1,0 +1,19 @@
+{
+  "@@locale": "ja",
+
+  "menu": "メニュー",
+  "home": "ホーム",
+  "language": "言語",
+  "use_language": "日本語",
+  "account_information": "アカウント情報",
+  "settings": "設定",
+  "status_settings": "ステータス設定",
+  "simple_translation": "簡単翻訳",
+  "faq": "よくある質問",
+  "app_version": "アプリのバージョン",
+  "logout": "ログアウト",
+
+  "walker": "ウォーカー",
+  "runner": "ランナー",
+  "senior": "シニア"
+}

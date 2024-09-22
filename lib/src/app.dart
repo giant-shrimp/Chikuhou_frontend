@@ -1,24 +1,48 @@
 import 'package:flutter/material.dart';
-
-import '../next_page.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'locale_provider.dart';
 import 'screens/first.dart';
 import 'screens/second.dart';
 import 'screens/third.dart';
 import 'screens/menu.dart';
 import 'screens/home.dart';
-import 'screens/search_bar.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    // ProviderScopeでlocaleProviderを監視
+    return ProviderScope(
+      child: Consumer(
+        builder: (context, ref, child) {
+          // localeProviderから現在のロケールを取得
+          final locale = ref.watch(localeProvider);
+
+          return MaterialApp(
+            title: 'Flutter Demo',
+            theme: ThemeData(
+              primarySwatch: Colors.blue,
+            ),
+            locale: locale,  // 言語設定を反映
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('en', ''),  // 英語
+              Locale('ja', ''),  // 日本語
+              Locale('ko', ''),  // 韓国語
+            ],
+            home: const MyStatefulWidget(),
+          );
+        },
       ),
-      home: const MyStatefulWidget(),
     );
   }
 }
@@ -54,12 +78,12 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _selectedIndex,
           onTap: _onItemTapped,
-          items: const <BottomNavigationBarItem>[
-            BottomNavigationBarItem(icon: Icon(Icons.table_rows_rounded), label: 'メニュー'),
-            BottomNavigationBarItem(icon: Icon(Icons.looks_one_outlined), label: '1st'),
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'ホーム'),
-            BottomNavigationBarItem(icon: Icon(Icons.looks_two_outlined), label: '2nd'),
-            BottomNavigationBarItem(icon: Icon(Icons.looks_3_outlined), label: '3rd'),
+          items: <BottomNavigationBarItem>[
+            BottomNavigationBarItem(icon: const Icon(Icons.table_rows_rounded), label: AppLocalizations.of(context)!.menu),
+            const BottomNavigationBarItem(icon: Icon(Icons.looks_one_outlined), label: '1st'),
+            BottomNavigationBarItem(icon: const Icon(Icons.home), label: AppLocalizations.of(context)!.home),
+            const BottomNavigationBarItem(icon: Icon(Icons.looks_two_outlined), label: '2nd'),
+            const BottomNavigationBarItem(icon: Icon(Icons.looks_3_outlined), label: '3rd'),
           ],
           type: BottomNavigationBarType.fixed,
         ));
