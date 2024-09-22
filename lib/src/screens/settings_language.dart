@@ -31,7 +31,7 @@ class SettingsLanguage extends HookConsumerWidget {
               SettingsTile(
                 title: const Text('English'),
                 trailing: currentLocale.languageCode == 'en'
-                    ? const Icon(Icons.done, color: Colors.blue) // 英語選択時にアイコン表示
+                    ? const Icon(Icons.done, color: Colors.blue) // 英語選択時にチェックマーク
                     : null,
                 onPressed: (context) {
                   changeLanguage(const Locale('en'));  // 英語に変更
@@ -41,7 +41,7 @@ class SettingsLanguage extends HookConsumerWidget {
               SettingsTile(
                 title: const Text('日本語'),
                 trailing: currentLocale.languageCode == 'ja'
-                    ? const Icon(Icons.done, color: Colors.blue) // 日本語選択時にアイコン表示
+                    ? const Icon(Icons.done, color: Colors.blue) // 日本語選択時にチェックマーク
                     : null,
                 onPressed: (context) {
                   changeLanguage(const Locale('ja'));  // 日本語に変更
@@ -51,7 +51,7 @@ class SettingsLanguage extends HookConsumerWidget {
               SettingsTile(
                 title: const Text('한국어'),
                 trailing: currentLocale.languageCode == 'ko'
-                    ? const Icon(Icons.done, color: Colors.blue) // 韓国語選択時にアイコン表示
+                    ? const Icon(Icons.done, color: Colors.blue) // 韓国語選択時にチェックマーク
                     : null,
                 onPressed: (context) {
                   changeLanguage(const Locale('ko'));  // 韓国語に変更

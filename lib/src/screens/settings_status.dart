@@ -5,7 +5,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 // 現在のステータスを管理するためのProvider
 final statusProvider = StateProvider<String>((ref) => 'walker'); //初期値:walker
-
+// ステータス変更用の関数
 class SettingsStatus extends HookConsumerWidget {
   const SettingsStatus({Key? key}) : super(key: key);
 
