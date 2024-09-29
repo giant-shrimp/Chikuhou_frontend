@@ -1,9 +1,10 @@
-import 'package:challecara/src/screens/settings_status.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'drag_drop.dart';
 import 'settings.dart';
+import 'settings_status.dart';
 
 class MenuScreen extends HookConsumerWidget {
   const MenuScreen({Key? key}) : super(key: key);
@@ -53,12 +54,24 @@ class MenuScreen extends HookConsumerWidget {
                 leading: Icon(statusIcon),
                 title: Text(AppLocalizations.of(context)!.status_settings),
                 value: Text(statusText),
-                description: const Text(''),
                 onPressed: (context){
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => const SettingsStatus(),
+                    ),
+                  );
+                },
+              ),
+              SettingsTile.navigation(
+                leading: const Icon(Icons.drag_handle),
+                title: Text("Drag & Drop"),
+                description: const Text(''),
+                onPressed: (context) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const DragDropScreen(),
                     ),
                   );
                 },
@@ -77,6 +90,10 @@ class MenuScreen extends HookConsumerWidget {
                 title: Text(AppLocalizations.of(context)!.app_version),
                 value: const Text('1.0.0'),
                 description: const Text(''),
+              ),
+              SettingsTile.navigation(
+                leading: const Icon(Icons.swap_horizontal_circle_outlined),
+                title: Text(AppLocalizations.of(context)!.swap),
               ),
               SettingsTile.navigation(
                 leading: const Icon(Icons.logout_rounded),
