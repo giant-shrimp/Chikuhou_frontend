@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'account_information.dart';
 import 'settings_language.dart';
 
 class SettingsScreen extends HookConsumerWidget {
@@ -35,6 +36,14 @@ class SettingsScreen extends HookConsumerWidget {
               SettingsTile.navigation(
                 leading: const Icon(Icons.account_circle),
                 title: Text(AppLocalizations.of(context)!.account_information),
+                onPressed: (context){
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AccountInformation(),
+                    ),
+                  );
+                },
               ),
             ],
           ),
