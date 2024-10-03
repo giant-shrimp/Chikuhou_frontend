@@ -54,24 +54,12 @@ class MenuScreen extends HookConsumerWidget {
                 leading: Icon(statusIcon),
                 title: Text(AppLocalizations.of(context)!.status_settings),
                 value: Text(statusText),
+                description: const Text(''),
                 onPressed: (context){
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => const SettingsStatus(),
-                    ),
-                  );
-                },
-              ),
-              SettingsTile.navigation(
-                leading: const Icon(Icons.drag_handle),
-                title: Text("Drag & Drop"),
-                description: const Text(''),
-                onPressed: (context) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const DragDropScreen(),
                     ),
                   );
                 },
@@ -90,6 +78,19 @@ class MenuScreen extends HookConsumerWidget {
                 title: Text(AppLocalizations.of(context)!.app_version),
                 value: const Text('1.0.0'),
                 description: const Text(''),
+              ),
+              SettingsTile.navigation(
+                leading: const Icon(Icons.build),
+                title: Text(AppLocalizations.of(context)!.sub_extension),
+                description: const Text(''),
+                onPressed: (context) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const DragDropScreen(),
+                    ),
+                  );
+                },
               ),
               SettingsTile.navigation(
                 leading: const Icon(Icons.swap_horizontal_circle_outlined),

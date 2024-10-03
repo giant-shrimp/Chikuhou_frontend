@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class DragDropScreen extends StatelessWidget {
   const DragDropScreen({Key? key}) : super(key: key);
@@ -7,7 +8,7 @@ class DragDropScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ドラッグ＆ドロップ'),
+        title: Text(AppLocalizations.of(context)!.sub_extension),
       ),
       body: DragDropContainer(),
     );
@@ -35,6 +36,8 @@ class _DragDropContainerState extends State<DragDropContainer> {
     'image12.jpg',
   ];
 
+  String? draggedItem;
+
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
@@ -44,13 +47,42 @@ class _DragDropContainerState extends State<DragDropContainer> {
       ),
       itemCount: items.length,
       itemBuilder: (context, index) {
-        return Draggable<String>(
-          data: items[index],
-          child: DragItem(imagePath: items[index]),
-          feedback: Material(
-            child: DragItem(imagePath: items[index]),
-          ),
-          childWhenDragging: Container(),
+        return DragTarget<String>(
+          onAccept: (receivedItem) {
+            setState(() {
+              final draggedIndex = items.indexOf(receivedItem);
+              // ドラッグしたアイテムとドロップ先のアイテムを入れ替え
+              final temp = items[index];
+              items[index] = receivedItem;
+              items[draggedIndex] = temp;
+            });
+          },
+          onWillAccept: (receivedItem) => receivedItem != items[index],
+          builder: (context, candidateData, rejectedData) {
+            return Draggable<String>(
+              data: items[index],
+              onDragStarted: () {
+                setState(() {
+                  draggedItem = items[index];
+                });
+              },
+              onDragCompleted: () {
+                setState(() {
+                  draggedItem = null;
+                });
+              },
+              onDraggableCanceled: (velocity, offset) {
+                setState(() {
+                  draggedItem = null;
+                });
+              },
+              feedback: Material(
+                child: DragItem(imagePath: items[index]),
+              ),
+              childWhenDragging: Container(),
+              child: DragItem(imagePath: items[index]),
+            );
+          },
         );
       },
     );
@@ -60,7 +92,7 @@ class _DragDropContainerState extends State<DragDropContainer> {
 class DragItem extends StatelessWidget {
   final String imagePath;
 
-  DragItem({required this.imagePath});
+  const DragItem({required this.imagePath});
 
   @override
   Widget build(BuildContext context) {

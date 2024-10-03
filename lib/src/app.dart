@@ -25,6 +25,16 @@ class MyApp extends StatelessWidget {
             title: 'Flutter Demo',
             theme: ThemeData(
               primarySwatch: Colors.blue,
+              // AppBarのタイトルスタイルを一括で設定
+              appBarTheme: const AppBarTheme(
+                backgroundColor: Color(0xFF7CFC00),
+                titleTextStyle: TextStyle(
+                  color: Colors.white,
+                  fontSize: 25.0,
+                  fontWeight: FontWeight.bold,
+                ),
+                centerTitle: true,
+              ),
             ),
             locale: locale,  // 言語設定を反映
             localizationsDelegates: const [

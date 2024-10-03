@@ -16,6 +16,7 @@
   "app_version": "アプリのバージョン",
   "swap": "アカウントを切り替える",
   "logout": "ログアウト",
+  "sub_extension": "サブ機能拡張",
 
   "walker": "ウォーカー",
   "runner": "ランナー",
