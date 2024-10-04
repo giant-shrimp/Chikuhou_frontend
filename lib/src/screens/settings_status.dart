@@ -47,12 +47,24 @@ class SettingsStatus extends HookConsumerWidget {
               SettingsTile(
                 leading: const Icon(Icons.assist_walker_sharp),
                 title: Text(AppLocalizations.of(context)!.senior),
+                description: const Text(''),
                 trailing: currentStatus == 'senior'
                     ? const Icon(Icons.done, color: Colors.blue) // Senior選択時にチェックマーク
                     : null,
                 //機能完成後にコメントアウトを解除
                 // onPressed: (context) {
                 //   ref.read(statusProvider.notifier).state = 'senior';  // Seniorに変更
+                // },
+              ),
+              SettingsTile(
+                leading: const Icon(Icons.accessible_forward_sharp),
+                title: Text(AppLocalizations.of(context)!.wheelchair),
+                trailing: currentStatus == 'wheelchair'
+                    ? const Icon(Icons.done, color: Colors.blue) // Senior選択時にチェックマーク
+                    : null,
+                //機能完成後にコメントアウトを解除
+                // onPressed: (context) {
+                //   ref.read(statusProvider.notifier).state = 'wheelchair';  // Wheelchairに変更
                 // },
               ),
             ],
