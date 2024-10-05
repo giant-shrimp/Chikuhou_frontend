@@ -11,10 +11,12 @@ class HomeScreen extends StatelessWidget {
       ),
       body: Stack(
         children: [
-          const Center(
-            child: Text(
-              'home画面',
-              style: TextStyle(fontSize: 32.0),
+          Center(
+            child: Image.asset(
+              'assets/image.png', // assetsフォルダ内の画像を表示
+              width: 410, // 必要に応じて幅を調整
+              height: 800, // 必要に応じて高さを調整
+              fit: BoxFit.cover, // 画像をボックスにフィットさせる方法
             ),
           ),
           Positioned(
