@@ -26,6 +26,9 @@ class MenuScreen extends HookConsumerWidget {
     } else if (currentStatus == 'wheelchair') {
       statusIcon = Icons.accessible_forward_sharp;
       statusText = AppLocalizations.of(context)!.wheelchair;
+    } else if (currentStatus == 'stroller') {
+      statusIcon = Icons.child_friendly_sharp;
+      statusText = AppLocalizations.of(context)!.stroller;
     } else {
       statusIcon = Icons.directions_walk_sharp;
       statusText = AppLocalizations.of(context)!.walker;

@@ -67,6 +67,17 @@ class SettingsStatus extends HookConsumerWidget {
                 //   ref.read(statusProvider.notifier).state = 'wheelchair';  // Wheelchairに変更
                 // },
               ),
+              SettingsTile(
+                leading: const Icon(Icons.child_friendly_sharp),
+                title: Text(AppLocalizations.of(context)!.stroller),
+                trailing: currentStatus == 'stroller'
+                    ? const Icon(Icons.done, color: Colors.blue) // Senior選択時にチェックマーク
+                    : null,
+                //機能完成後にコメントアウトを解除
+                // onPressed: (context) {
+                //   ref.read(statusProvider.notifier).state = 'stroller';  // Wheelchairに変更
+                // },
+              ),
             ],
           ),
         ],
