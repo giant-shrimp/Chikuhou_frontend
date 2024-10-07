@@ -21,22 +21,45 @@ class DragDropContainer extends StatefulWidget {
 }
 
 class _DragDropContainerState extends State<DragDropContainer> {
-  List<String> items = [
-    'image1.jpg',
-    'image2.jpg',
-    'image3.jpg',
-    'image4.jpg',
-    'image5.jpg',
-    'image6.jpg',
-    'image7.jpg',
-    'image8.jpg',
-    'image9.jpg',
-    'image10.jpg',
-    'image11.jpg',
-    'image12.jpg',
-  ];
+  // Combine icon and label together
+  List<Map<String, dynamic>> items = [];
 
-  String? draggedItem;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Initialize items with localized labels
+    items = [
+      {
+        'icon': Icons.cloudy_snowing,
+        'label': AppLocalizations.of(context)!.rain_cloud_radar,
+      },
+      {
+        'icon': Icons.volume_up,
+        'label': AppLocalizations.of(context)!.audio_guidance,
+      },
+      {
+        'icon': Icons.g_translate,
+        'label': AppLocalizations.of(context)!.simple_translation,
+      },
+      {
+        'icon': Icons.forum,
+        'label': AppLocalizations.of(context)!.reviews,
+      },
+      {
+        'icon': Icons.directions_run,
+        'label': AppLocalizations.of(context)!.marathon_course,
+      },
+      {
+        'icon': Icons.add_home_work,
+        'label': AppLocalizations.of(context)!.securing_evacuation_routes,
+      },
+      {
+        'icon': Icons.monitor_weight,
+        'label': AppLocalizations.of(context)!.calorie_count,
+      },
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,40 +70,36 @@ class _DragDropContainerState extends State<DragDropContainer> {
       ),
       itemCount: items.length,
       itemBuilder: (context, index) {
-        return DragTarget<String>(
+        return DragTarget<Map<String, dynamic>>(
           onAccept: (receivedItem) {
             setState(() {
               final draggedIndex = items.indexOf(receivedItem);
-              // ドラッグしたアイテムとドロップ先のアイテムを入れ替え
-              final temp = items[index];
+              final tempItem = items[index];
               items[index] = receivedItem;
-              items[draggedIndex] = temp;
+              items[draggedIndex] = tempItem;
             });
           },
           onWillAccept: (receivedItem) => receivedItem != items[index],
           builder: (context, candidateData, rejectedData) {
-            return Draggable<String>(
+            return Draggable<Map<String, dynamic>>(
               data: items[index],
-              onDragStarted: () {
-                setState(() {
-                  draggedItem = items[index];
-                });
-              },
               onDragCompleted: () {
-                setState(() {
-                  draggedItem = null;
-                });
+                setState(() {});
               },
               onDraggableCanceled: (velocity, offset) {
-                setState(() {
-                  draggedItem = null;
-                });
+                setState(() {});
               },
               feedback: Material(
-                child: DragItem(imagePath: items[index]),
+                child: DragItem(
+                  icon: items[index]['icon'],
+                  label: items[index]['label'],
+                ),
               ),
               childWhenDragging: Container(),
-              child: DragItem(imagePath: items[index]),
+              child: DragItem(
+                icon: items[index]['icon'],
+                label: items[index]['label'],
+              ),
             );
           },
         );
@@ -90,9 +109,10 @@ class _DragDropContainerState extends State<DragDropContainer> {
 }
 
 class DragItem extends StatelessWidget {
-  final String imagePath;
+  final IconData icon;
+  final String label;
 
-  const DragItem({required this.imagePath});
+  const DragItem({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -105,9 +125,12 @@ class DragItem extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset(imagePath, fit: BoxFit.cover),
+          Icon(icon, size: 50, color: Colors.white),
           const SizedBox(height: 5),
-          Text(imagePath.split('/').last),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white),
+          ),
         ],
       ),
     );
