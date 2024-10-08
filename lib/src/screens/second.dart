@@ -8,6 +8,7 @@ class SecondScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('2'),
+        automaticallyImplyLeading: false,
       ),
       body:
       const Center(child: Text('2nd画面', style: TextStyle(fontSize: 32.0))),

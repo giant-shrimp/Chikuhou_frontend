@@ -8,6 +8,7 @@ class FirstScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('1'),
+        automaticallyImplyLeading: false,
       ),
       body:
       const Center(child: Text('1st画面', style: TextStyle(fontSize: 32.0))),

@@ -3,6 +3,7 @@ import 'package:settings_ui/settings_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'drag_drop.dart';
+import 'login.dart';
 import 'settings.dart';
 import 'settings_status.dart';
 
@@ -35,10 +36,11 @@ class MenuScreen extends HookConsumerWidget {
     }
 
     return Scaffold(
-        appBar: AppBar(
-          title: Text(AppLocalizations.of(context)!.menu),
-        ),
-      body:  SettingsList(
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context)!.menu),
+        automaticallyImplyLeading: false,
+      ),
+      body: SettingsList(
         platform: DevicePlatform.iOS,
         sections: [
           SettingsSection(
@@ -47,12 +49,12 @@ class MenuScreen extends HookConsumerWidget {
               SettingsTile.navigation(
                 leading: const Icon(Icons.settings),
                 title: Text(AppLocalizations.of(context)!.settings),
-                onPressed: (context){
+                onPressed: (context) {
                   Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const SettingsScreen(),
-                      ),
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SettingsScreen(),
+                    ),
                   );
                 },
               ),
@@ -61,7 +63,7 @@ class MenuScreen extends HookConsumerWidget {
                 title: Text(AppLocalizations.of(context)!.status_settings),
                 value: Text(statusText),
                 description: const Text(''),
-                onPressed: (context){
+                onPressed: (context) {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -106,15 +108,51 @@ class MenuScreen extends HookConsumerWidget {
                 leading: const Icon(Icons.logout_rounded),
                 title: Text(
                   AppLocalizations.of(context)!.logout,
-                    style: const TextStyle(
-                      color: Colors.red,
-                    ),
+                  style: const TextStyle(color: Colors.red,),
                 ),
+                onPressed: (context) {
+                  // ログアウト確認のダイアログを表示
+                  _showLogoutDialog(context);
+                },
               ),
             ],
           ),
         ],
       ),
+    );
+  }
+
+  // ログアウト確認のダイアログを表示するメソッド
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(AppLocalizations.of(context)!.logout_confirmation),
+          content: Text(AppLocalizations.of(context)!.are_you_sure_logout),
+          actions: <Widget>[
+            TextButton(
+              child: Text(AppLocalizations.of(context)!.cancel),
+              onPressed: () {
+                Navigator.of(context).pop(); // ダイアログを閉じる
+              },
+            ),
+            TextButton(
+              child: Text(
+                AppLocalizations.of(context)!.logout,
+                style: const TextStyle(color: Colors.red), // 赤色に設定
+              ),
+              onPressed: () {
+                // ログアウト処理
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()), // LoginScreenへ遷移
+                );
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

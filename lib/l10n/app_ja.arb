@@ -21,8 +21,18 @@
   "calorie_count": "カロリー計算",
   "faq": "よくある質問",
   "app_version": "アプリのバージョン",
+
   "swap": "アカウントを切り替える",
   "logout": "ログアウト",
+  "logout_confirmation": "ログアウト確認",
+  "are_you_sure_logout": "本当にログアウトしますか？",
+  "cancel": "キャンセル",
+
+  "login": "ログイン",
+  "password": "パスワード",
+  "password_confirmation": "パスワード 確認",
+
+  "sign_up": "新規登録",
 
   "walker": "ウォーカー",
   "runner": "ランナー",
