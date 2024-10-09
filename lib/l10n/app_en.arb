@@ -37,6 +37,7 @@
   "walker": "Walker",
   "runner": "Runner",
   "senior": "Senior",
+  "bike": "Bike",
   "wheelchair": "Wheelchair",
   "stroller": "Stroller"
 }
