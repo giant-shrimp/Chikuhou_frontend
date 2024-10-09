@@ -77,21 +77,6 @@ class MenuScreen extends HookConsumerWidget {
                 },
               ),
               SettingsTile.navigation(
-                leading: const Icon(Icons.g_translate),
-                title: Text(AppLocalizations.of(context)!.simple_translation),
-                description: const Text(''),
-              ),
-              SettingsTile.navigation(
-                leading: const Icon(Icons.quiz_rounded),
-                title: Text(AppLocalizations.of(context)!.faq),
-              ),
-              SettingsTile(
-                leading: const Icon(Icons.info_outline_rounded),
-                title: Text(AppLocalizations.of(context)!.app_version),
-                value: const Text('1.0.0'),
-                description: const Text(''),
-              ),
-              SettingsTile.navigation(
                 leading: const Icon(Icons.build),
                 title: Text(AppLocalizations.of(context)!.sub_extension),
                 description: const Text(''),
@@ -103,6 +88,16 @@ class MenuScreen extends HookConsumerWidget {
                     ),
                   );
                 },
+              ),
+              SettingsTile.navigation(
+                leading: const Icon(Icons.quiz_rounded),
+                title: Text(AppLocalizations.of(context)!.faq),
+              ),
+              SettingsTile(
+                leading: const Icon(Icons.info_outline_rounded),
+                title: Text(AppLocalizations.of(context)!.app_version),
+                value: const Text('1.0.0'),
+                description: const Text(''),
               ),
               SettingsTile.navigation(
                 leading: const Icon(Icons.swap_horizontal_circle_outlined),
