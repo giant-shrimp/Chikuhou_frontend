@@ -108,7 +108,7 @@ class MenuScreen extends HookConsumerWidget {
               SettingsTile.navigation(
                 leading: const Icon(Icons.logout_rounded),
                 title: Text(
-                  AppLocalizations.of(context)!.logout,
+                  AppLocalizations.of(context)!.sign_out,
                   style: const TextStyle(color: Colors.red,),
                 ),
                 onPressed: (context) {
@@ -129,8 +129,8 @@ class MenuScreen extends HookConsumerWidget {
       context: context,
       builder: (BuildContext context) {
         return CupertinoAlertDialog(
-          title: Text(AppLocalizations.of(context)!.logout_confirmation),
-          content: Text(AppLocalizations.of(context)!.are_you_sure_logout),
+          title: Text(AppLocalizations.of(context)!.sign_out_confirmation),
+          content: Text(AppLocalizations.of(context)!.are_you_sure_sign_out),
           actions: <Widget>[
             CupertinoDialogAction(
               child: Text(AppLocalizations.of(context)!.cancel),
@@ -140,7 +140,7 @@ class MenuScreen extends HookConsumerWidget {
             ),
             CupertinoDialogAction(
               isDestructiveAction: true, // ログアウトボタンを強調
-              child: Text(AppLocalizations.of(context)!.logout),
+              child: Text(AppLocalizations.of(context)!.sign_out),
               onPressed: () {
                 // ログアウト処理
                 Navigator.pushReplacement(

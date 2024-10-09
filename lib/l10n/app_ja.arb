@@ -23,12 +23,12 @@
   "app_version": "アプリのバージョン",
 
   "swap": "アカウントを切り替える",
-  "logout": "ログアウト",
-  "logout_confirmation": "ログアウト確認",
-  "are_you_sure_logout": "本当にログアウトしますか？",
+  "sign_out": "サインアウト",
+  "sign_out_confirmation": "サインアウト確認",
+  "are_you_sure_sign_out": "本当にサインアウトしますか？",
   "cancel": "キャンセル",
 
-  "login": "ログイン",
+  "sign_in": "サインイン",
   "password": "パスワード",
   "password_confirmation": "パスワード 確認",
 

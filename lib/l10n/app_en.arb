@@ -23,12 +23,12 @@
   "app_version": "App Version",
 
   "swap": "Switch accounts",
-  "logout": "Logout",
-  "logout_confirmation": "Logout confirmation",
-  "are_you_sure_logout": "Are you sure you want to log out?",
+  "sign_out": "Sign out",
+  "sign_out_confirmation": "Sign out confirmation",
+  "are_you_sure_sign_out": "Are you sure you want to sign out?",
   "cancel": "Cancel",
 
-  "login": "Log in",
+  "sign_in": "Sign in",
   "password": "Password",
   "password_confirmation": "Password confirmation",
 

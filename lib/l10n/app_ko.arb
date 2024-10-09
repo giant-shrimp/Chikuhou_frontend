@@ -23,12 +23,12 @@
   "app_version": "앱 버전",
 
   "swap": "계정 전환",
-  "logout": "로그아웃",
-  "logout_confirmation": "로그아웃 확인",
-  "are_you_sure_logout": "로그아웃하시겠습니까?",
+  "sign_out": "로그아웃",
+  "sign_out_confirmation": "로그아웃 확인",
+  "are_you_sure_sign_out": "로그아웃하시겠습니까?",
   "cancel": "취소",
 
-  "login": "로그인",
+  "sign_in": "로그인",
   "password": "비밀번호",
   "password_confirmation": "비밀번호 확인",
 

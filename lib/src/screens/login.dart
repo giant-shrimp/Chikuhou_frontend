@@ -10,7 +10,7 @@ class LoginScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.login),
+        title: Text(AppLocalizations.of(context)!.sign_in),
         automaticallyImplyLeading: false,
       ),
       body: Padding(
@@ -44,7 +44,7 @@ class LoginScreen extends StatelessWidget {
                       MaterialPageRoute(builder: (context) => const MyStatefulWidget()),
                     );
                   },
-                  child: Text(AppLocalizations.of(context)!.login),
+                  child: Text(AppLocalizations.of(context)!.sign_in),
                 ),
                 ElevatedButton(
                   onPressed: () {
