@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -127,21 +128,19 @@ class MenuScreen extends HookConsumerWidget {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
+        return CupertinoAlertDialog(
           title: Text(AppLocalizations.of(context)!.logout_confirmation),
           content: Text(AppLocalizations.of(context)!.are_you_sure_logout),
           actions: <Widget>[
-            TextButton(
+            CupertinoDialogAction(
               child: Text(AppLocalizations.of(context)!.cancel),
               onPressed: () {
                 Navigator.of(context).pop(); // ダイアログを閉じる
               },
             ),
-            TextButton(
-              child: Text(
-                AppLocalizations.of(context)!.logout,
-                style: const TextStyle(color: Colors.red), // 赤色に設定
-              ),
+            CupertinoDialogAction(
+              isDestructiveAction: true, // ログアウトボタンを強調
+              child: Text(AppLocalizations.of(context)!.logout),
               onPressed: () {
                 // ログアウト処理
                 Navigator.pushReplacement(
