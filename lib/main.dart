@@ -35,6 +35,7 @@ class MyApp extends StatelessWidget {
                 ),
                 centerTitle: true,
               ),
+              scaffoldBackgroundColor: const Color(0xFFF2F2F7),
             ),
             locale: locale,  // 言語設定を反映
             localizationsDelegates: const [
