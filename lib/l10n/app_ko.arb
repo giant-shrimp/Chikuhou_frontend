@@ -31,6 +31,10 @@
   "sign_in": "로그인",
   "password": "비밀번호",
   "password_confirmation": "비밀번호 확인",
+  "current_password": "현재 비밀번호",
+  "new_password": "새로운 비밀번호",
+  "new_password_confirmation": "새로운 비밀번호 확인",
+  "change_password": "비밀번호 변경",
 
   "sign_up": "신규 등록",
 

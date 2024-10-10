@@ -31,6 +31,10 @@
   "sign_in": "サインイン",
   "password": "パスワード",
   "password_confirmation": "パスワード 確認",
+  "current_password": "現在のパスワード",
+  "new_password": "新しいパスワード",
+  "new_password_confirmation": "新しいパスワード 確認",
+  "change_password": "パスワードを変更",
 
   "sign_up": "新規登録",
 
