@@ -38,10 +38,15 @@ class SettingsPassword extends StatelessWidget {
                 prefixIcon: const Icon(Icons.lock),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 60),
             ElevatedButton(
               onPressed: () {
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white, // 背景色を白に設定
+                foregroundColor: Colors.black, // テキスト色を黒に設定
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 50),
+              ),
               child: Text(AppLocalizations.of(context)!.change_password),
             ),
           ],
