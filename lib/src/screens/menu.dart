@@ -4,7 +4,7 @@ import 'package:settings_ui/settings_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'drag_drop.dart';
-import 'login.dart';
+import 'sign_in.dart';
 import 'settings.dart';
 import 'settings_status.dart';
 
@@ -143,7 +143,7 @@ class MenuScreen extends HookConsumerWidget {
                 // ログアウト処理
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen()), // LoginScreenへ遷移
+                  MaterialPageRoute(builder: (context) => const SignInScreen()), // LoginScreenへ遷移
                 );
               },
             ),

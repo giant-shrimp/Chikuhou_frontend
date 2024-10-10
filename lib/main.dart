@@ -3,7 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'src/locale_provider.dart';
-import 'src/screens/login.dart';
+import 'src/screens/sign_in.dart';
 
 void main() {
   runApp(const MyApp());
@@ -49,7 +49,7 @@ class MyApp extends StatelessWidget {
               Locale('ja', ''),  // 日本語
               Locale('ko', ''),  // 韓国語
             ],
-            home: const LoginScreen(),
+            home: const SignInScreen(),
           );
         },
       ),
