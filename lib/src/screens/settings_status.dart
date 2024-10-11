@@ -15,7 +15,7 @@ class SettingsStatus extends HookConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.status_settings),
+        title: Text(AppLocalizations.of(context)!.status),
       ),
       body: SettingsList(
         platform: DevicePlatform.iOS,

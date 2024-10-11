@@ -64,7 +64,7 @@ class MenuScreen extends HookConsumerWidget {
               ),
               SettingsTile.navigation(
                 leading: Icon(statusIcon),
-                title: Text(AppLocalizations.of(context)!.status_settings),
+                title: Text(AppLocalizations.of(context)!.status),
                 value: Text(statusText),
                 description: const Text(''),
                 onPressed: (context) {

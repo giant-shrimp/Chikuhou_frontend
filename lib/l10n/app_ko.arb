@@ -10,7 +10,7 @@
   "email": "이메일",
   "phone": "전화 번호",
   "settings": "설정",
-  "status_settings": "상태 설정",
+  "status": "상태",
   "sub_extension": "하위 확장",
   "rain_cloud_radar": "비구름 레이더",
   "audio_guidance": "오디오 가이드",
