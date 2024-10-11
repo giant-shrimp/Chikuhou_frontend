@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
                 centerTitle: true,
               ),
             ),
-            locale: locale,  // 言語設定を反映
+            locale: locale, // 言語設定を反映
             localizationsDelegates: const [
               AppLocalizations.delegate,
               GlobalMaterialLocalizations.delegate,
@@ -44,9 +44,9 @@ class MyApp extends StatelessWidget {
               GlobalCupertinoLocalizations.delegate,
             ],
             supportedLocales: const [
-              Locale('en', ''),  // 英語
-              Locale('ja', ''),  // 日本語
-              Locale('ko', ''),  // 韓国語
+              Locale('en', ''), // 英語
+              Locale('ja', ''), // 日本語
+              Locale('ko', ''), // 韓国語
             ],
             home: const MyStatefulWidget(),
           );
@@ -88,11 +88,18 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
           currentIndex: _selectedIndex,
           onTap: _onItemTapped,
           items: <BottomNavigationBarItem>[
-            BottomNavigationBarItem(icon: const Icon(Icons.table_rows_rounded), label: AppLocalizations.of(context)!.menu),
-            const BottomNavigationBarItem(icon: Icon(Icons.looks_one_outlined), label: '1st'),
-            BottomNavigationBarItem(icon: const Icon(Icons.home), label: AppLocalizations.of(context)!.home),
-            const BottomNavigationBarItem(icon: Icon(Icons.looks_two_outlined), label: '2nd'),
-            const BottomNavigationBarItem(icon: Icon(Icons.looks_3_outlined), label: '3rd'),
+            BottomNavigationBarItem(
+                icon: const Icon(Icons.table_rows_rounded),
+                label: AppLocalizations.of(context)!.menu),
+            const BottomNavigationBarItem(
+                icon: Icon(Icons.looks_one_outlined), label: '1st'),
+            BottomNavigationBarItem(
+                icon: const Icon(Icons.home),
+                label: AppLocalizations.of(context)!.home),
+            const BottomNavigationBarItem(
+                icon: Icon(Icons.looks_two_outlined), label: '2nd'),
+            const BottomNavigationBarItem(
+                icon: Icon(Icons.looks_3_outlined), label: '3rd'),
           ],
           type: BottomNavigationBarType.fixed,
         ));
