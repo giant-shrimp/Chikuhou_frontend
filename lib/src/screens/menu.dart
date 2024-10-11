@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../status_provider.dart';
 import 'drag_drop.dart';
 import 'sign_in.dart';
 import 'settings.dart';
@@ -16,28 +17,9 @@ class MenuScreen extends HookConsumerWidget {
     // 現在のステータスを取得
     final currentStatus = ref.watch(statusProvider);
 
-    // ステータスに応じてアイコンを決定
-    IconData statusIcon;
-    String statusText;
-    if (currentStatus == 'runner') {
-      statusIcon = Icons.directions_run_sharp;
-      statusText = AppLocalizations.of(context)!.runner;
-    } else if (currentStatus == 'senior') {
-      statusIcon = Icons.assist_walker_sharp;
-      statusText = AppLocalizations.of(context)!.senior;
-    } else if (currentStatus == 'bike') {
-      statusIcon = Icons.directions_bike_sharp;
-      statusText = AppLocalizations.of(context)!.bike;
-    } else if (currentStatus == 'wheelchair') {
-      statusIcon = Icons.accessible_forward_sharp;
-      statusText = AppLocalizations.of(context)!.wheelchair;
-    } else if (currentStatus == 'stroller') {
-      statusIcon = Icons.child_friendly_sharp;
-      statusText = AppLocalizations.of(context)!.stroller;
-    } else {
-      statusIcon = Icons.directions_walk_sharp;
-      statusText = AppLocalizations.of(context)!.walker;
-    }
+    final statusDetails = getStatusDetails(context, currentStatus);
+    IconData statusIcon = statusDetails['icon'];
+    String statusText = statusDetails['text'];
 
     return Scaffold(
       appBar: AppBar(
@@ -62,19 +44,19 @@ class MenuScreen extends HookConsumerWidget {
                   );
                 },
               ),
-              SettingsTile.navigation(
+              SettingsTile(
                 leading: Icon(statusIcon),
                 title: Text(AppLocalizations.of(context)!.status),
                 value: Text(statusText),
                 description: const Text(''),
-                onPressed: (context) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const SettingsStatus(),
-                    ),
-                  );
-                },
+                // onPressed: (context) {
+                //   Navigator.push(
+                //     context,
+                //     MaterialPageRoute(
+                //       builder: (context) => const SettingsStatus(),
+                //     ),
+                //   );
+                // },
               ),
               SettingsTile.navigation(
                 leading: const Icon(Icons.build),

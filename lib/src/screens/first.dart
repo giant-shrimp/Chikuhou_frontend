@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class FirstScreen extends StatelessWidget {
   const FirstScreen({Key? key}) : super(key: key);
@@ -7,11 +8,11 @@ class FirstScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('1'),
+        title: Text(AppLocalizations.of(context)!.rain_cloud_radar),
         automaticallyImplyLeading: false,
       ),
       body:
-      const Center(child: Text('1st画面', style: TextStyle(fontSize: 32.0))),
+      const Center(child: Text('雨雲レーダー画面', style: TextStyle(fontSize: 32.0))),
     );
   }
 }
