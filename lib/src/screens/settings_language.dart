@@ -5,7 +5,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../locale_provider.dart';
 
 class SettingsLanguage extends HookConsumerWidget {
-  const SettingsLanguage({Key? key}) : super(key: key);
+  const SettingsLanguage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

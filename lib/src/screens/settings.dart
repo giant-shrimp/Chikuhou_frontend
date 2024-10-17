@@ -6,7 +6,7 @@ import 'account_information.dart';
 import 'settings_language.dart';
 
 class SettingsScreen extends HookConsumerWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

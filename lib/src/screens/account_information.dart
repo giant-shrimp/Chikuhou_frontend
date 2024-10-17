@@ -5,7 +5,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'settings_password.dart';
 
 class AccountInformation extends HookConsumerWidget {
-  const AccountInformation({Key? key}) : super(key: key);
+  const AccountInformation({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
