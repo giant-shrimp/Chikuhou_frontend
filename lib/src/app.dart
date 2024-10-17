@@ -10,7 +10,7 @@ import 'screens/home.dart';
 import 'status_provider.dart';
 
 class MyStatefulWidget extends ConsumerStatefulWidget {
-  const MyStatefulWidget({Key? key}) : super(key: key);
+  const MyStatefulWidget({super.key});
 
   @override
   ConsumerState<MyStatefulWidget> createState() => _MyStatefulWidgetState();
