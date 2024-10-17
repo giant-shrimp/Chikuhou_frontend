@@ -15,7 +15,8 @@ class SettingsStatus extends HookConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.status_settings),
+        title: Text(AppLocalizations.of(context)!.status),
+        automaticallyImplyLeading: false,
       ),
       body: SettingsList(
         platform: DevicePlatform.iOS,
@@ -40,20 +41,54 @@ class SettingsStatus extends HookConsumerWidget {
                     ? const Icon(Icons.done, color: Colors.blue) // Runner選択時にチェックマーク
                     : null,
                 //機能完成後にコメントアウトを解除
-                // onPressed: (context) {
-                //   ref.read(statusProvider.notifier).state = 'runner';  // Runnerに変更
-                // },
+                onPressed: (context) {
+                  ref.read(statusProvider.notifier).state = 'runner';  // Runnerに変更
+                },
               ),
               SettingsTile(
                 leading: const Icon(Icons.assist_walker_sharp),
                 title: Text(AppLocalizations.of(context)!.senior),
+                description: const Text(''),
                 trailing: currentStatus == 'senior'
                     ? const Icon(Icons.done, color: Colors.blue) // Senior選択時にチェックマーク
                     : null,
                 //機能完成後にコメントアウトを解除
-                // onPressed: (context) {
-                //   ref.read(statusProvider.notifier).state = 'senior';  // Seniorに変更
-                // },
+                onPressed: (context) {
+                  ref.read(statusProvider.notifier).state = 'senior';  // Seniorに変更
+                },
+              ),
+              SettingsTile(
+                leading: const Icon(Icons.directions_bike_sharp),
+                title: Text(AppLocalizations.of(context)!.bike),
+                trailing: currentStatus == 'bike'
+                    ? const Icon(Icons.done, color: Colors.blue) // Bike選択時にチェックマーク
+                    : null,
+                //機能完成後にコメントアウトを解除
+                onPressed: (context) {
+                  ref.read(statusProvider.notifier).state = 'bike';  // Bikeに変更
+                },
+              ),
+              SettingsTile(
+                leading: const Icon(Icons.accessible_forward_sharp),
+                title: Text(AppLocalizations.of(context)!.wheelchair),
+                trailing: currentStatus == 'wheelchair'
+                    ? const Icon(Icons.done, color: Colors.blue) // Wheelchair選択時にチェックマーク
+                    : null,
+                //機能完成後にコメントアウトを解除
+                onPressed: (context) {
+                  ref.read(statusProvider.notifier).state = 'wheelchair';  // Wheelchairに変更
+                },
+              ),
+              SettingsTile(
+                leading: const Icon(Icons.child_friendly_sharp),
+                title: Text(AppLocalizations.of(context)!.stroller),
+                trailing: currentStatus == 'stroller'
+                    ? const Icon(Icons.done, color: Colors.blue) // Stroller選択時にチェックマーク
+                    : null,
+                //機能完成後にコメントアウトを解除
+                onPressed: (context) {
+                  ref.read(statusProvider.notifier).state = 'stroller';  // Strollerに変更
+                },
               ),
             ],
           ),
