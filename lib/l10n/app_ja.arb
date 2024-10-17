@@ -10,14 +10,38 @@
   "email": "メール",
   "phone": "電話番号",
   "settings": "設定",
-  "status_settings": "ステータス設定",
+  "status": "ステータス",
+  "sub_extension": "サブ機能拡張",
+  "rain_cloud_radar": "雨雲レーダー",
+  "audio_guidance": "音声案内",
   "simple_translation": "簡単翻訳",
+  "reviews": "口コミ",
+  "marathon_course": "マラソンコース",
+  "securing_evacuation_routes": "避難経路の確保",
+  "calorie_count": "カロリー計算",
   "faq": "よくある質問",
   "app_version": "アプリのバージョン",
+
   "swap": "アカウントを切り替える",
-  "logout": "ログアウト",
+  "sign_out": "サインアウト",
+  "sign_out_confirmation": "サインアウト確認",
+  "are_you_sure_sign_out": "本当にサインアウトしますか？",
+  "cancel": "キャンセル",
+
+  "sign_in": "サインイン",
+  "password": "パスワード",
+  "password_confirmation": "パスワード 確認",
+  "current_password": "現在のパスワード",
+  "new_password": "新しいパスワード",
+  "new_password_confirmation": "新しいパスワード 確認",
+  "change_password": "パスワードを変更",
+
+  "sign_up": "新規登録",
 
   "walker": "ウォーカー",
   "runner": "ランナー",
-  "senior": "シニア"
+  "senior": "シニア",
+  "bike": "自転車",
+  "wheelchair": "車イス",
+  "stroller": "ベビーカー"
 }

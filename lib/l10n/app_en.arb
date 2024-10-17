@@ -10,14 +10,38 @@
   "email": "Email",
   "phone": "Phone",
   "settings": "Settings",
-  "status_settings": "Status Settings",
+  "status": "Status",
+  "sub_extension": "Sub-Extension",
+  "rain_cloud_radar": "Rain Cloud Radar",
+  "audio_guidance": "Audio guidance",
   "simple_translation": "Simple Translation",
+  "reviews": "Reviews",
+  "marathon_course": "Marathon Course",
+  "securing_evacuation_routes": "Securing evacuation routes",
+  "calorie_count": "Calorie Count",
   "faq": "FAQ",
   "app_version": "App Version",
+
   "swap": "Switch accounts",
-  "logout": "Logout",
+  "sign_out": "Sign out",
+  "sign_out_confirmation": "Sign out confirmation",
+  "are_you_sure_sign_out": "Are you sure you want to sign out?",
+  "cancel": "Cancel",
+
+  "sign_in": "Sign in",
+  "password": "Password",
+  "password_confirmation": "Password confirmation",
+  "current_password": "Current Password",
+  "new_password": "New Password",
+  "new_password_confirmation": "New Password confirmation",
+  "change_password": "Change Password",
+
+  "sign_up": "Sign up",
 
   "walker": "Walker",
   "runner": "Runner",
-  "senior": "Senior"
+  "senior": "Senior",
+  "bike": "Bike",
+  "wheelchair": "Wheelchair",
+  "stroller": "Stroller"
 }
