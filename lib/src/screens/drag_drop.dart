@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import '../sub_provider.dart';
 
 class DragDropScreen extends StatelessWidget {
   const DragDropScreen({super.key});
@@ -32,7 +34,7 @@ class DragDropScreen extends StatelessWidget {
                     label: AppLocalizations.of(context)!.home
                 ),
                 const BottomNavigationBarItem(
-                    icon: Icon(Icons.volume_up, color: Colors.redAccent),
+                    icon: Icon(Icons.volume_up),
                     label: '2nd'
                 ),
                 BottomNavigationBarItem(
@@ -58,10 +60,10 @@ class DragDropScreen extends StatelessWidget {
                   icon: Icons.cloudy_snowing,
                   label: AppLocalizations.of(context)!.rain_cloud_radar,
                 ),
-                EmptyBox2(
-                  icon: Icons.volume_up,
-                  label: AppLocalizations.of(context)!.audio_guidance,
-                ),
+                // EmptyBox2(
+                //   icon: Icons.volume_up,
+                //   label: AppLocalizations.of(context)!.audio_guidance,
+                // ),
               ],
             ),
           ),
@@ -71,32 +73,13 @@ class DragDropScreen extends StatelessWidget {
   }
 }
 
-class DragDropContainer extends StatefulWidget {
+class DragDropContainer extends HookConsumerWidget {
   const DragDropContainer({super.key});
 
   @override
-  _DragDropContainerState createState() => _DragDropContainerState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final items = ref.watch(dragDropItemsProvider);
 
-class _DragDropContainerState extends State<DragDropContainer> {
-  List<Map<String, dynamic>> items = [];
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    items = [
-      {'icon': Icons.cloudy_snowing, 'label': AppLocalizations.of(context)!.rain_cloud_radar},
-      {'icon': Icons.volume_up, 'label': AppLocalizations.of(context)!.audio_guidance},
-      {'icon': Icons.g_translate, 'label': AppLocalizations.of(context)!.simple_translation},
-      {'icon': Icons.forum, 'label': AppLocalizations.of(context)!.reviews},
-      {'icon': Icons.directions_run, 'label': AppLocalizations.of(context)!.marathon_course},
-      {'icon': Icons.add_home_work, 'label': AppLocalizations.of(context)!.securing_evacuation_routes},
-      {'icon': Icons.monitor_weight, 'label': AppLocalizations.of(context)!.calorie_count},
-    ];
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
@@ -104,41 +87,62 @@ class _DragDropContainerState extends State<DragDropContainer> {
       ),
       itemCount: items.length,
       itemBuilder: (context, index) {
+        // ローカライズされたラベルを取得
+        final localizedLabel = _getLocalizedLabel(context, items[index]['label']);
+
         return DragTarget<Map<String, dynamic>>(
           onAccept: (receivedItem) {
-            setState(() {
-              final draggedIndex = items.indexOf(receivedItem);
-              final tempItem = items[index];
-              items[index] = receivedItem;
-              items[draggedIndex] = tempItem;
+            ref.read(dragDropItemsProvider.notifier).update((state) {
+              final draggedIndex = state.indexOf(receivedItem);
+              final tempItem = state[index];
+              state[index] = receivedItem;
+              state[draggedIndex] = tempItem;
+              return [...state];
             });
           },
           onWillAccept: (receivedItem) => receivedItem != items[index],
           builder: (context, candidateData, rejectedData) {
             return Draggable<Map<String, dynamic>>(
               data: items[index],
-              onDragCompleted: () {
-                setState(() {});
-              },
-              onDraggableCanceled: (velocity, offset) {
-                setState(() {});
-              },
               feedback: Material(
                 child: DragItem(
                   icon: items[index]['icon'],
-                  label: items[index]['label'],
+                  label: localizedLabel,
                 ),
               ),
               childWhenDragging: Container(),
               child: DragItem(
                 icon: items[index]['icon'],
-                label: items[index]['label'],
+                label: localizedLabel,
               ),
             );
           },
         );
       },
     );
+  }
+
+  // ラベルをローカライズするメソッド
+  String _getLocalizedLabel(BuildContext context, String labelKey) {
+    final localizations = AppLocalizations.of(context)!;
+    switch (labelKey) {
+      case 'rain_cloud_radar':
+        return localizations.rain_cloud_radar;
+      case 'audio_guidance':
+        return localizations.audio_guidance;
+      case 'simple_translation':
+        return localizations.simple_translation;
+      case 'reviews':
+        return localizations.reviews;
+      case 'marathon_course':
+        return localizations.marathon_course;
+      case 'securing_evacuation_routes':
+        return localizations.securing_evacuation_routes;
+      case 'calorie_count':
+        return localizations.calorie_count;
+      default:
+        return labelKey; // デフォルトはキーをそのまま表示
+    }
   }
 }
 
