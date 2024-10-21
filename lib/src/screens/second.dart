@@ -8,11 +8,11 @@ class SecondScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.audio_guidance),
+        title: const Text('勾配計算'),
         automaticallyImplyLeading: false,
       ),
       body:
-      const Center(child: Text('音声案内画面', style: TextStyle(fontSize: 32.0))),
+      const Center(child: Text('勾配計算画面', style: TextStyle(fontSize: 32.0))),
     );
   }
 }
