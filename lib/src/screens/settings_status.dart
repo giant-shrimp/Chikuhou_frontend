@@ -7,7 +7,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 final statusProvider = StateProvider<String>((ref) => 'walker'); //初期値:walker
 // ステータス変更用の関数
 class SettingsStatus extends HookConsumerWidget {
-  const SettingsStatus({Key? key}) : super(key: key);
+  const SettingsStatus({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

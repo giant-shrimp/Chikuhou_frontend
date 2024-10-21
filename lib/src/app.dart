@@ -10,7 +10,7 @@ import 'screens/home.dart';
 import 'status_provider.dart';
 
 class MyStatefulWidget extends ConsumerStatefulWidget {
-  const MyStatefulWidget({Key? key}) : super(key: key);
+  const MyStatefulWidget({super.key});
 
   @override
   ConsumerState<MyStatefulWidget> createState() => _MyStatefulWidgetState();
@@ -60,9 +60,9 @@ class _MyStatefulWidgetState extends ConsumerState<MyStatefulWidget> {
             icon: const Icon(Icons.home),
             label: AppLocalizations.of(context)!.home,
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.volume_up),
-            label: AppLocalizations.of(context)!.audio_guidance,
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.route),
+            label: '勾配計算',
           ),
           BottomNavigationBarItem(
             icon: Icon(statusIcon),
