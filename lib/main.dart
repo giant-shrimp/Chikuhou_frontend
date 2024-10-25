@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'src/locale_provider.dart';
-import 'src/screens/sign_in.dart';
+import 'presentation/providers/locale_provider.dart';
+import 'presentation/views/auth/sign_in.dart';
 
 void main() {
   runApp(const MyApp());
@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
               ),
               scaffoldBackgroundColor: const Color(0xFFF2F2F7),
             ),
-            locale: locale,  // 言語設定を反映
+            locale: locale, // 言語設定を反映
             localizationsDelegates: const [
               AppLocalizations.delegate,
               GlobalMaterialLocalizations.delegate,
@@ -45,9 +45,9 @@ class MyApp extends StatelessWidget {
               GlobalCupertinoLocalizations.delegate,
             ],
             supportedLocales: const [
-              Locale('en', ''),  // 英語
-              Locale('ja', ''),  // 日本語
-              Locale('ko', ''),  // 韓国語
+              Locale('en', ''), // 英語
+              Locale('ja', ''), // 日本語
+              Locale('ko', ''), // 韓国語
             ],
             home: const SignInScreen(),
           );

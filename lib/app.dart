@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'screens/first.dart';
-import 'screens/second.dart';
-import 'screens/settings_status.dart';
+import 'presentation/widgets/common/first.dart';
+import 'presentation/widgets/common/second.dart';
+import 'presentation/views/settings/settings_status.dart';
 //import 'screens/third.dart';
-import 'screens/menu.dart';
-import 'screens/home.dart';
-import 'status_provider.dart';
+import 'presentation/views/home/menu.dart';
+import 'presentation/views/home/home.dart';
+import 'presentation/providers/status_provider.dart';
 
 class MyStatefulWidget extends ConsumerStatefulWidget {
   const MyStatefulWidget({super.key});

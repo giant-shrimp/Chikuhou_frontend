@@ -41,9 +41,10 @@ class HomeScreen extends StatelessWidget {
             builder: (BuildContext context) {
               return DraggableScrollableSheet(
                 initialChildSize: 0.5, // モーダルが表示されるときの初期の高さ
-                minChildSize: 0.2,     // 最小の高さ
-                maxChildSize: 1.0,     // 最大の高さ
-                builder: (BuildContext context, ScrollController scrollController) {
+                minChildSize: 0.2, // 最小の高さ
+                maxChildSize: 1.0, // 最大の高さ
+                builder:
+                    (BuildContext context, ScrollController scrollController) {
                   return Container(
                     margin: const EdgeInsets.only(top: 64), // 上部にマージンを追加
                     decoration: const BoxDecoration(
@@ -89,7 +90,10 @@ class HomeScreen extends StatelessWidget {
                               const SizedBox(height: 16),
                               const Text(
                                 '　　　分　　　秒',
-                                style: TextStyle(fontSize: 16,decoration: TextDecoration.underline,),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  decoration: TextDecoration.underline,
+                                ),
                               ),
                               const SizedBox(height: 16),
                               ElevatedButton(
@@ -111,7 +115,8 @@ class HomeScreen extends StatelessWidget {
         },
         child: const Icon(Icons.south),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat, // ボタンを右下に配置
+      floatingActionButtonLocation:
+          FloatingActionButtonLocation.endFloat, // ボタンを右下に配置
     );
   }
 }

@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import '../status_provider.dart';
-import 'drag_drop.dart';
-import 'sign_in.dart';
-import 'settings.dart';
-import 'settings_status.dart';
+import '../../providers/status_provider.dart';
+import '../../widgets/drag_drop/drag_drop.dart';
+import '../auth/sign_in.dart';
+import '../settings/settings.dart';
+import '../settings/settings_status.dart';
 
 class MenuScreen extends HookConsumerWidget {
   const MenuScreen({super.key});
@@ -89,7 +89,9 @@ class MenuScreen extends HookConsumerWidget {
                 leading: const Icon(Icons.logout_rounded),
                 title: Text(
                   AppLocalizations.of(context)!.sign_out,
-                  style: const TextStyle(color: Colors.red,),
+                  style: const TextStyle(
+                    color: Colors.red,
+                  ),
                 ),
                 onPressed: (context) {
                   // ログアウト確認のダイアログを表示
@@ -125,7 +127,9 @@ class MenuScreen extends HookConsumerWidget {
                 // ログアウト処理
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => const SignInScreen()), // LoginScreenへ遷移
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          const SignInScreen()), // LoginScreenへ遷移
                 );
               },
             ),

@@ -11,7 +11,7 @@ class ThirdScreen extends StatelessWidget {
         automaticallyImplyLeading: false,
       ),
       body:
-      const Center(child: Text('3rd画面', style: TextStyle(fontSize: 32.0))),
+          const Center(child: Text('3rd画面', style: TextStyle(fontSize: 32.0))),
     );
   }
 }

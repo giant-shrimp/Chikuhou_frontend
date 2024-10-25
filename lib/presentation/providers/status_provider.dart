@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-Map<String, dynamic> getStatusDetails(BuildContext context, String currentStatus) {
+Map<String, dynamic> getStatusDetails(
+    BuildContext context, String currentStatus) {
   IconData statusIcon;
   String statusText;
 

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import '../locale_provider.dart';
+import '../../providers/locale_provider.dart';
 
 class SettingsLanguage extends HookConsumerWidget {
   const SettingsLanguage({super.key});
@@ -31,30 +31,33 @@ class SettingsLanguage extends HookConsumerWidget {
               SettingsTile(
                 title: const Text('English'),
                 trailing: currentLocale.languageCode == 'en'
-                    ? const Icon(Icons.done, color: Colors.blue) // 英語選択時にチェックマーク
+                    ? const Icon(Icons.done,
+                        color: Colors.blue) // 英語選択時にチェックマーク
                     : null,
                 onPressed: (context) {
-                  changeLanguage(const Locale('en'));  // 英語に変更
+                  changeLanguage(const Locale('en')); // 英語に変更
                 },
               ),
               // 日本語設定
               SettingsTile(
                 title: const Text('日本語'),
                 trailing: currentLocale.languageCode == 'ja'
-                    ? const Icon(Icons.done, color: Colors.blue) // 日本語選択時にチェックマーク
+                    ? const Icon(Icons.done,
+                        color: Colors.blue) // 日本語選択時にチェックマーク
                     : null,
                 onPressed: (context) {
-                  changeLanguage(const Locale('ja'));  // 日本語に変更
+                  changeLanguage(const Locale('ja')); // 日本語に変更
                 },
               ),
               // 韓国語設定
               SettingsTile(
                 title: const Text('한국어'),
                 trailing: currentLocale.languageCode == 'ko'
-                    ? const Icon(Icons.done, color: Colors.blue) // 韓国語選択時にチェックマーク
+                    ? const Icon(Icons.done,
+                        color: Colors.blue) // 韓国語選択時にチェックマーク
                     : null,
                 onPressed: (context) {
-                  changeLanguage(const Locale('ko'));  // 韓国語に変更
+                  changeLanguage(const Locale('ko')); // 韓国語に変更
                 },
               ),
             ],

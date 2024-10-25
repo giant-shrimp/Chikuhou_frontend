@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../sub_provider.dart';
+import '../../../presentation/providers/sub_provider.dart';
 
 class DragDropScreen extends StatelessWidget {
   const DragDropScreen({super.key});
@@ -23,24 +23,19 @@ class DragDropScreen extends StatelessWidget {
               items: <BottomNavigationBarItem>[
                 BottomNavigationBarItem(
                     icon: const Icon(Icons.table_rows_rounded),
-                    label: AppLocalizations.of(context)!.menu
-                ),
+                    label: AppLocalizations.of(context)!.menu),
                 const BottomNavigationBarItem(
                   icon: Icon(Icons.cloudy_snowing, color: Colors.redAccent),
                   label: 'サブ機能',
                 ),
                 BottomNavigationBarItem(
                     icon: const Icon(Icons.home),
-                    label: AppLocalizations.of(context)!.home
-                ),
+                    label: AppLocalizations.of(context)!.home),
                 const BottomNavigationBarItem(
-                    icon: Icon(Icons.route),
-                    label: '勾配計算'
-                ),
+                    icon: Icon(Icons.route), label: '勾配計算'),
                 BottomNavigationBarItem(
                     icon: const Icon(Icons.directions_walk_sharp),
-                    label: AppLocalizations.of(context)!.status
-                ),
+                    label: AppLocalizations.of(context)!.status),
               ],
               type: BottomNavigationBarType.fixed,
               selectedItemColor: Colors.grey, // 選択中のアイテムの色
@@ -88,7 +83,8 @@ class DragDropContainer extends HookConsumerWidget {
       itemCount: items.length,
       itemBuilder: (context, index) {
         // ローカライズされたラベルを取得
-        final localizedLabel = _getLocalizedLabel(context, items[index]['label']);
+        final localizedLabel =
+            _getLocalizedLabel(context, items[index]['label']);
 
         return DragTarget<Map<String, dynamic>>(
           onAccept: (receivedItem) {

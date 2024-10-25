@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import '../app.dart';
+import '../../../app.dart';
 
 class SignUpScreen extends StatelessWidget {
   const SignUpScreen({super.key});
@@ -51,13 +51,15 @@ class SignUpScreen extends StatelessWidget {
                 // ログイン成功後、app.dartに遷移
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => const MyStatefulWidget()),
+                  MaterialPageRoute(
+                      builder: (context) => const MyStatefulWidget()),
                 );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white, // 背景色を白に設定
                 foregroundColor: Colors.black, // テキスト色を黒に設定
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 50),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 50),
               ),
               child: Text(AppLocalizations.of(context)!.sign_up),
             ),

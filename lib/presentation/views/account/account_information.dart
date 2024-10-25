@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'settings_password.dart';
+import '../settings/settings_password.dart';
 
 class AccountInformation extends HookConsumerWidget {
   const AccountInformation({super.key});
@@ -13,7 +13,7 @@ class AccountInformation extends HookConsumerWidget {
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.account_information),
       ),
-      body:  SettingsList(
+      body: SettingsList(
         platform: DevicePlatform.iOS,
         sections: [
           SettingsSection(
