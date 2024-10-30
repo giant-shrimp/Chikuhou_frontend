@@ -24,8 +24,8 @@ class DragDropScreen extends StatelessWidget {
                 BottomNavigationBarItem(
                     icon: const Icon(Icons.table_rows_rounded),
                     label: AppLocalizations.of(context)!.menu),
-                const BottomNavigationBarItem(
-                  icon: Icon(Icons.cloudy_snowing, color: Colors.redAccent),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.cloudy_snowing, color: Colors.indigo[400]),
                   label: 'サブ機能',
                 ),
                 BottomNavigationBarItem(
@@ -153,7 +153,7 @@ class DragItem extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.all(5),
       decoration: BoxDecoration(
-        color: Colors.lightBlue,
+        color: Colors.blueGrey[400],
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -212,7 +212,7 @@ class EmptyBox1 extends StatelessWidget {
       width: 125,
       height: 125,
       decoration: BoxDecoration(
-        color: Colors.redAccent, // 背景色を設定
+        color: Colors.indigo[400], // 背景色を設定
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
