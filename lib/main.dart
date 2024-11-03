@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
               primarySwatch: Colors.blue,
               // AppBarのタイトルスタイルを一括で設定
               appBarTheme: const AppBarTheme(
-                backgroundColor: Color(0xFF7CFC00),
+                backgroundColor: Color(0xFF228B22),
                 titleTextStyle: TextStyle(
                   color: Colors.white,
                   fontSize: 25.0,
