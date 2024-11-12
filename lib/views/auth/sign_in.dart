@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import '../../../app.dart';
+import '../../app.dart';
 import 'sign_up.dart';
 
 class SignInScreen extends StatelessWidget {

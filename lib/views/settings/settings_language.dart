@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import '../../providers/locale_provider.dart';
+import '../../config/providers/locale_provider.dart';
 
 class SettingsLanguage extends HookConsumerWidget {
   const SettingsLanguage({super.key});
