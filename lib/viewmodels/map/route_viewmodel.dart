@@ -3,7 +3,10 @@ import '../../core/services/route_service.dart';
 import '../../models/route_model.dart';
 
 class RouteViewModel extends ChangeNotifier {
-  final RouteService _routeService = RouteService();
+  final RouteService _routeService;
+
+  RouteViewModel({required RouteService routeService})
+      : _routeService = routeService;
 
   RouteModel? _route;
   RouteModel? get route => _route;
@@ -14,9 +17,10 @@ class RouteViewModel extends ChangeNotifier {
   Future<void> fetchRoute(String origin, String destination) async {
     try {
       _errorMessage = null;
-      _route = await _routeService.getRoute(origin, destination);
+      final routeData = await _routeService.getRoute(origin, destination);
+      _route = RouteModel.fromJson(routeData);
     } catch (e) {
-      _errorMessage = 'Failed to load route: $e';
+      _errorMessage = '経路情報の取得に失敗しました。$e';
     } finally {
       notifyListeners();
     }

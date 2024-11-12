@@ -1,12 +1,37 @@
 class RouteModel {
-  final List<String> steps;
+  final String duration;
+  final String distance;
+  final List<Map<String, double>> polylinePoints; // 座標データのリスト
 
-  RouteModel({required this.steps});
+  RouteModel({
+    required this.duration,
+    required this.distance,
+    required this.polylinePoints,
+  });
 
   factory RouteModel.fromJson(Map<String, dynamic> json) {
-    // JSONのデータを解析してステップのリストを取得する
-    List<String> steps = List<String>.from(json['routes'][0]['legs'][0]['steps']
-        .map((step) => step['html_instructions'] as String));
-    return RouteModel(steps: steps);
+    if (json['routes'] == null || json['routes'].isEmpty) {
+      throw Exception('No routes found');
+    }
+
+    // 経路のポイントを取得
+    List<Map<String, double>> points = [];
+    try {
+      List steps = json['routes'][0]['legs'][0]['steps'];
+      for (var step in steps) {
+        points.add({
+          'latitude': step['end_location']['lat'],
+          'longitude': step['end_location']['lng'],
+        });
+      }
+    } catch (e) {
+      throw Exception('Error parsing route points: $e');
+    }
+
+    return RouteModel(
+      duration: json['routes'][0]['legs'][0]['duration']['text'],
+      distance: json['routes'][0]['legs'][0]['distance']['text'],
+      polylinePoints: points,
+    );
   }
 }
