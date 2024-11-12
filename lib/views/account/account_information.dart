@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../../viewmodels/settings/account_information_viewmodel.dart';
 import '../settings/settings_password.dart';
 
 class AccountInformation extends HookConsumerWidget {
@@ -9,6 +10,9 @@ class AccountInformation extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // ViewModelのプロバイダーを利用して状態を取得
+    final accountInformationViewModel = ref.watch(accountInformationProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.account_information),
@@ -21,15 +25,18 @@ class AccountInformation extends HookConsumerWidget {
             tiles: <SettingsTile>[
               SettingsTile.navigation(
                 title: Text(AppLocalizations.of(context)!.username),
-                value: const Text('John Doe'),
+                value: Text(
+                    accountInformationViewModel.userName), // ViewModelからデータを取得
               ),
               SettingsTile.navigation(
                 title: Text(AppLocalizations.of(context)!.email),
-                value: const Text('johndoe@example.com'),
+                value: Text(
+                    accountInformationViewModel.email), // ViewModelからデータを取得
               ),
               SettingsTile.navigation(
                 title: Text(AppLocalizations.of(context)!.phone),
-                value: const Text('+123 456 7890'),
+                value: Text(
+                    accountInformationViewModel.phone), // ViewModelからデータを取得
                 description: const Text(''),
               ),
               SettingsTile.navigation(

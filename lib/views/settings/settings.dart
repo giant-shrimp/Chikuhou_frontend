@@ -3,6 +3,7 @@ import 'package:settings_ui/settings_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../account/account_information.dart';
+import '../../viewmodels/settings/account_information_viewmodel.dart';
 import 'settings_language.dart';
 
 class SettingsScreen extends HookConsumerWidget {
@@ -14,7 +15,7 @@ class SettingsScreen extends HookConsumerWidget {
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.settings),
       ),
-      body:  SettingsList(
+      body: SettingsList(
         platform: DevicePlatform.iOS,
         sections: [
           SettingsSection(
@@ -24,7 +25,7 @@ class SettingsScreen extends HookConsumerWidget {
                 leading: const Icon(Icons.language),
                 title: Text(AppLocalizations.of(context)!.language),
                 value: Text(AppLocalizations.of(context)!.use_language),
-                onPressed: (context){
+                onPressed: (context) {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -36,7 +37,13 @@ class SettingsScreen extends HookConsumerWidget {
               SettingsTile.navigation(
                 leading: const Icon(Icons.account_circle),
                 title: Text(AppLocalizations.of(context)!.account_information),
-                onPressed: (context){
+                onPressed: (context) {
+                  // AccountInformationViewModelを使ってデータを準備しながら画面遷移
+                  final viewModel = ref.read(accountInformationProvider);
+
+                  // ユーザー情報を取得する処理を事前に実行
+                  viewModel.fetchUserInformation();
+
                   Navigator.push(
                     context,
                     MaterialPageRoute(
