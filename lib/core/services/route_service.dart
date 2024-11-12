@@ -1,24 +1,21 @@
-import 'package:flutter/material.dart';
-import '../../core/services/route_service.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'dart:convert';
 import '../../models/route_model.dart';
 
-class RouteViewModel extends ChangeNotifier {
-  final RouteService _routeService = RouteService();
+class RouteService {
+  final String apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
 
-  RouteModel? _route;
-  RouteModel? get route => _route;
+  Future<RouteModel> getRoute(String origin, String destination) async {
+    final url =
+        'https://maps.googleapis.com/maps/api/directions/json?origin=$origin&destination=$destination&key=$apiKey';
+    final response = await http.get(Uri.parse(url));
 
-  String? _errorMessage;
-  String? get errorMessage => _errorMessage;
-
-  Future<void> fetchRoute(String origin, String destination) async {
-    try {
-      _errorMessage = null;
-      _route = await _routeService.getRoute(origin, destination);
-    } catch (e) {
-      _errorMessage = 'Failed to load route: $e';
-    } finally {
-      notifyListeners();
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body);
+      return RouteModel.fromJson(json);
+    } else {
+      throw Exception('Failed to load route');
     }
   }
 }

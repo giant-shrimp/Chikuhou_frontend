@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -12,13 +13,18 @@ class HomeScreen extends StatelessWidget {
       ),
       body: Stack(
         children: [
-          Center(
-            child: Image.asset(
-              'assets/image.png', // assetsフォルダ内の画像を表示
-              width: 410, // 必要に応じて幅を調整
-              height: 800, // 必要に応じて高さを調整
-              fit: BoxFit.cover, // 画像をボックスにフィットさせる方法
+          // Googleマップのウィジェットを配置
+          GoogleMap(
+            initialCameraPosition: CameraPosition(
+              target: LatLng(35.681236, 139.767125), // 初期表示位置（ここでは東京駅に設定）
+              zoom: 14.0, // ズームレベル
             ),
+            myLocationEnabled: true, // 現在位置ボタンを有効にする
+            myLocationButtonEnabled: true, // 現在位置のボタンを表示する
+            mapType: MapType.normal, // マップのタイプ（通常の地図に設定）
+            onMapCreated: (GoogleMapController controller) {
+              // マップが作成されたときのコールバック
+            },
           ),
           Positioned(
             top: 16, // AppBarの下に位置させるための余白

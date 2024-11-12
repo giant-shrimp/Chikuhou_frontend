@@ -1,21 +1,12 @@
-import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'dart:convert';
-import '../../models/route_model.dart';
+class RouteModel {
+  final List<String> steps;
 
-class RouteService {
-  final String apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
+  RouteModel({required this.steps});
 
-  Future<RouteModel> getRoute(String origin, String destination) async {
-    final url =
-        'https://maps.googleapis.com/maps/api/directions/json?origin=$origin&destination=$destination&key=$apiKey';
-    final response = await http.get(Uri.parse(url));
-
-    if (response.statusCode == 200) {
-      final json = jsonDecode(response.body);
-      return RouteModel.fromJson(json);
-    } else {
-      throw Exception('Failed to load route');
-    }
+  factory RouteModel.fromJson(Map<String, dynamic> json) {
+    // JSONのデータを解析してステップのリストを取得する
+    List<String> steps = List<String>.from(json['routes'][0]['legs'][0]['steps']
+        .map((step) => step['html_instructions'] as String));
+    return RouteModel(steps: steps);
   }
 }
