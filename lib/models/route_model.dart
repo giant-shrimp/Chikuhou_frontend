@@ -1,21 +1,37 @@
-import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'dart:convert';
-import '../../models/route_model.dart';
+class RouteModel {
+  final String duration;
+  final String distance;
+  final List<Map<String, double>> polylinePoints; // 座標データのリスト
 
-class RouteService {
-  final String apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
+  RouteModel({
+    required this.duration,
+    required this.distance,
+    required this.polylinePoints,
+  });
 
-  Future<RouteModel> getRoute(String origin, String destination) async {
-    final url =
-        'https://maps.googleapis.com/maps/api/directions/json?origin=$origin&destination=$destination&key=$apiKey';
-    final response = await http.get(Uri.parse(url));
-
-    if (response.statusCode == 200) {
-      final json = jsonDecode(response.body);
-      return RouteModel.fromJson(json);
-    } else {
-      throw Exception('Failed to load route');
+  factory RouteModel.fromJson(Map<String, dynamic> json) {
+    if (json['routes'] == null || json['routes'].isEmpty) {
+      throw Exception('No routes found');
     }
+
+    // 経路のポイントを取得
+    List<Map<String, double>> points = [];
+    try {
+      List steps = json['routes'][0]['legs'][0]['steps'];
+      for (var step in steps) {
+        points.add({
+          'latitude': step['end_location']['lat'],
+          'longitude': step['end_location']['lng'],
+        });
+      }
+    } catch (e) {
+      throw Exception('Error parsing route points: $e');
+    }
+
+    return RouteModel(
+      duration: json['routes'][0]['legs'][0]['duration']['text'],
+      distance: json['routes'][0]['legs'][0]['distance']['text'],
+      polylinePoints: points,
+    );
   }
 }
