@@ -59,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         child: const Icon(Icons.south),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
     );
   }
 
