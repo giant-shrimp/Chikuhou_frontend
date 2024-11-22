@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import '../../app.dart';
+import '../app/app.dart';
+import '../widgets/common/custom_button.dart';
+import '../widgets/common/custom_text_field.dart';
 import 'sign_up.dart';
 
 class SignInScreen extends StatelessWidget {
@@ -18,56 +20,47 @@ class SignInScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            TextField(
-              decoration: InputDecoration(
-                labelText: AppLocalizations.of(context)!.email,
-                prefixIcon: const Icon(Icons.email),
-              ),
+            // メールアドレス入力フィールド
+            CustomTextField(
+              label: AppLocalizations.of(context)!.email,
+              icon: Icons.email,
+              isPassword: false,
             ),
             const SizedBox(height: 16),
-            TextField(
-              obscureText: true, // パスワード入力を非表示
-              decoration: InputDecoration(
-                labelText: AppLocalizations.of(context)!.password,
-                prefixIcon: const Icon(Icons.lock),
-              ),
+            // パスワード入力フィールド
+            CustomTextField(
+              label: AppLocalizations.of(context)!.password,
+              icon: Icons.lock,
+              isPassword: true,
             ),
             const SizedBox(height: 60),
             Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                ElevatedButton(
+                CustomButton(
+                  text: AppLocalizations.of(context)!.sign_in,
                   onPressed: () {
-                    // ログイン成功後、app.dartに遷移
+                    // ログイン成功後、アプリのメイン画面に遷移
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const MyStatefulWidget()),
+                        builder: (context) => const MyStatefulWidget(),
+                      ),
                     );
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white, // 背景色を白に設定
-                    foregroundColor: Colors.black, // テキスト色を黒に設定
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 12, horizontal: 50),
-                  ),
-                  child: Text(AppLocalizations.of(context)!.sign_in),
                 ),
                 const SizedBox(height: 12),
-                ElevatedButton(
+                CustomButton(
+                  text: AppLocalizations.of(context)!.sign_up,
                   onPressed: () {
+                    // サインアップ画面へ遷移
                     Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const SignUpScreen()));
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SignUpScreen(),
+                      ),
+                    );
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white, // 背景色を白に設定
-                    foregroundColor: Colors.black, // テキスト色を黒に設定
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 12, horizontal: 50),
-                  ),
-                  child: Text(AppLocalizations.of(context)!.sign_up),
                 ),
               ],
             ),
