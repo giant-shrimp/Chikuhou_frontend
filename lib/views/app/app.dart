@@ -54,15 +54,15 @@ class _MyStatefulWidgetState extends ConsumerState<MyStatefulWidget> {
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.cloudy_snowing),
-            label: AppLocalizations.of(context)!.rain_cloud_radar,
+            label: AppLocalizations.of(context)!.sub,
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.home),
             label: AppLocalizations.of(context)!.home,
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.route),
-            label: '勾配計算',
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.route),
+            label: AppLocalizations.of(context)!.gradient,
           ),
           BottomNavigationBarItem(
             icon: Icon(statusIcon),

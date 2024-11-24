@@ -26,13 +26,14 @@ class DragDropScreen extends StatelessWidget {
                     label: AppLocalizations.of(context)!.menu),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.cloudy_snowing, color: Colors.indigo[400]),
-                  label: 'サブ機能',
+                  label: AppLocalizations.of(context)!.sub,
                 ),
                 BottomNavigationBarItem(
                     icon: const Icon(Icons.home),
                     label: AppLocalizations.of(context)!.home),
-                const BottomNavigationBarItem(
-                    icon: Icon(Icons.route), label: '勾配計算'),
+                BottomNavigationBarItem(
+                    icon: const Icon(Icons.route),
+                    label: AppLocalizations.of(context)!.gradient),
                 BottomNavigationBarItem(
                     icon: const Icon(Icons.directions_walk_sharp),
                     label: AppLocalizations.of(context)!.status),
