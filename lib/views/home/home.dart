@@ -2,6 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Google Maps Route Display',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+      ),
+      home: const HomeScreen(),
+    );
+  }
+}
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,8 +32,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  GoogleMapController? _mapController; // Googleマップコントローラの定義
-  Set<Polyline> _polylines = {}; // 経路情報を描画するためのPolylineのセット
+  GoogleMapController? _mapController;
+  Set<Polyline> _polylines = {};
   final TextEditingController _originController = TextEditingController();
   final TextEditingController _destinationController = TextEditingController();
 
@@ -25,7 +46,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Stack(
         children: [
-          // Googleマップのウィジェットを配置
           GoogleMap(
             initialCameraPosition: const CameraPosition(
               target: LatLng(33.5902, 130.4017), // 初期表示位置（福岡市）
@@ -34,10 +54,8 @@ class _HomeScreenState extends State<HomeScreen> {
             myLocationEnabled: true,
             myLocationButtonEnabled: true,
             mapType: MapType.normal,
-            onMapCreated: (GoogleMapController controller) {
-              _mapController = controller; // コントローラを設定
-            },
-            polylines: _polylines, // マップ上に描画するポリライン
+            onMapCreated: (controller) => _mapController = controller,
+            polylines: _polylines,
           ),
           Positioned(
             top: 16,
@@ -45,7 +63,6 @@ class _HomeScreenState extends State<HomeScreen> {
             child: IconButton(
               icon: const Icon(Icons.assistant_navigation, size: 50),
               onPressed: () {
-                // 経路検索モーダルを表示して、ユーザーからの入力を受け取る
                 _showRouteSearchModal(context);
               },
             ),
@@ -97,7 +114,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        // 出発地の入力フィールド
                         TextField(
                           controller: _originController,
                           decoration: const InputDecoration(
@@ -106,7 +122,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        // 目的地の入力フィールド
                         TextField(
                           controller: _destinationController,
                           decoration: const InputDecoration(
@@ -117,7 +132,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: () async {
-                            // 経路を計算するボタン
                             await _calculateRoute();
                             Navigator.pop(context); // モーダルを閉じる
                           },
@@ -143,7 +157,9 @@ class _HomeScreenState extends State<HomeScreen> {
       );
 
       if (routeData != null) {
-        final List<LatLng> points = _parsePoints(routeData['polyline_points']);
+        final List<LatLng> points = _decodePolyline(
+          routeData['routes'][0]['overview_polyline']['points'],
+        );
         setState(() {
           _polylines = {
             Polyline(
@@ -155,53 +171,81 @@ class _HomeScreenState extends State<HomeScreen> {
           };
         });
 
-        // マップを経路の中心に移動
         if (_mapController != null && points.isNotEmpty) {
           LatLngBounds bounds = _getLatLngBounds(points);
           _mapController!
               .animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('経路を取得できませんでした')),
-        );
+        _showSnackBar('経路を取得できませんでした');
       }
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('エラーが発生しました: $error')),
-      );
+      _showSnackBar('エラーが発生しました: $error');
     }
   }
 
   Future<Map<String, dynamic>?> _fetchRouteFromAPI(
       String origin, String destination) async {
-    const YOUR_API_KEY =
-        "AIzaSyDpNaeH9bQiOIGrK9uFra_w5lM2R4uO_rk"; // String.fromEnvironment('API_KEY');
-    final String apiUrl =
-        'https://maps.googleapis.com/maps/api/directions/json?destination=${destination}&origin=${origin}&key=${YOUR_API_KEY}'; // APIのURL
-    final response = await http.post(
-      Uri.parse(apiUrl),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'origin': origin,
-        'destination': destination,
-        'mode': 'walking', // 歩行者モード
-      }),
-    );
+    final String apiKey = dotenv.env['API_KEY'] ?? ''; // .envからAPIキーを取得
+
+    if (apiKey.isEmpty) {
+      print('APIキーが見つかりません');
+      return null;
+    }
+
+    final encodedOrigin = Uri.encodeComponent(origin);
+    final encodedDestination = Uri.encodeComponent(destination);
+    final url =
+        'https://maps.googleapis.com/maps/api/directions/json?origin=$encodedOrigin&destination=$encodedDestination&key=$apiKey';
+
+    print('Request URL: $url'); // デバッグ用
+
+    final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return data; // 必要なデータ構造に応じて修正
+      if (data['routes'] != null && data['routes'].isNotEmpty) {
+        return data;
+      } else {
+        print(
+            'API Response Error: ${data['status']} - ${data['error_message']}');
+        return null;
+      }
     } else {
+      print('HTTP Error: ${response.statusCode}');
       return null;
     }
   }
 
-  List<LatLng> _parsePoints(List<dynamic> points) {
-    return points
-        .map((point) =>
-            LatLng(point['latitude'] as double, point['longitude'] as double))
-        .toList();
+  List<LatLng> _decodePolyline(String encoded) {
+    List<LatLng> points = [];
+    int index = 0, len = encoded.length;
+    int lat = 0, lng = 0;
+
+    while (index < len) {
+      int b, shift = 0, result = 0;
+      do {
+        b = encoded.codeUnitAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      int dlat = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
+      lat += dlat;
+
+      shift = 0;
+      result = 0;
+      do {
+        b = encoded.codeUnitAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      int dlng = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
+      lng += dlng;
+
+      points.add(LatLng(lat / 1E5, lng / 1E5));
+    }
+
+    return points;
   }
 
   LatLngBounds _getLatLngBounds(List<LatLng> points) {
@@ -221,5 +265,10 @@ class _HomeScreenState extends State<HomeScreen> {
       southwest: LatLng(minLat, minLng),
       northeast: LatLng(maxLat, maxLng),
     );
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 }
