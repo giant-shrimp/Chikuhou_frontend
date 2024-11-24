@@ -1,9 +1,9 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../config/providers/status_provider.dart';
+import '../../core/utils/dialog_helpers.dart';
 import '../widgets/drag_drop/drag_drop.dart';
 import '../auth/sign_in.dart';
 import '../settings/settings.dart';
@@ -94,48 +94,29 @@ class MenuScreen extends HookConsumerWidget {
                   ),
                 ),
                 onPressed: (context) {
-                  // ログアウト確認のダイアログを表示
-                  _showLogoutDialog(context);
+                  // ログアウト確認ダイアログを表示
+                  showDialogs(
+                    context: context,
+                    title: AppLocalizations.of(context)!.sign_out_confirmation,
+                    content: AppLocalizations.of(context)!.are_you_sure_sign_out,
+                    cancelText: AppLocalizations.of(context)!.cancel,
+                    confirmText: AppLocalizations.of(context)!.sign_out,
+                    onConfirm: () {
+                      // ログアウト処理
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SignInScreen(),
+                        ),
+                      );
+                    },
+                  );
                 },
               ),
             ],
           ),
         ],
       ),
-    );
-  }
-
-  // ログアウト確認のダイアログを表示するメソッド
-  void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return CupertinoAlertDialog(
-          title: Text(AppLocalizations.of(context)!.sign_out_confirmation),
-          content: Text(AppLocalizations.of(context)!.are_you_sure_sign_out),
-          actions: <Widget>[
-            CupertinoDialogAction(
-              child: Text(AppLocalizations.of(context)!.cancel),
-              onPressed: () {
-                Navigator.of(context).pop(); // ダイアログを閉じる
-              },
-            ),
-            CupertinoDialogAction(
-              isDestructiveAction: true, // ログアウトボタンを強調
-              child: Text(AppLocalizations.of(context)!.sign_out),
-              onPressed: () {
-                // ログアウト処理
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          const SignInScreen()), // LoginScreenへ遷移
-                );
-              },
-            ),
-          ],
-        );
-      },
     );
   }
 }

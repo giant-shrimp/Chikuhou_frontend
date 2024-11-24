@@ -8,7 +8,7 @@ class SecondScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('勾配計算'),
+        title: Text(AppLocalizations.of(context)!.gradient_calculation),
         automaticallyImplyLeading: false,
       ),
       body:

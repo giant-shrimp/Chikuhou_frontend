@@ -5,6 +5,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'config/providers/locale_provider.dart';
 import '../views/auth/sign_in.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'config/theme.dart';
 
 Future<void> main() async {
   await dotenv.load(fileName: ".env");
@@ -26,20 +27,7 @@ class MyApp extends StatelessWidget {
 
           return MaterialApp(
             title: 'Flutter Demo',
-            theme: ThemeData(
-              primarySwatch: Colors.blue,
-              // AppBarのタイトルスタイルを一括で設定
-              appBarTheme: const AppBarTheme(
-                backgroundColor: Color(0xFF228B22),
-                titleTextStyle: TextStyle(
-                  color: Colors.white,
-                  fontSize: 25.0,
-                  fontWeight: FontWeight.bold,
-                ),
-                centerTitle: true,
-              ),
-              scaffoldBackgroundColor: const Color(0xFFF2F2F7),
-            ),
+            theme: appTheme, //テーマを外部化
             locale: locale, // 言語設定を反映
             localizationsDelegates: const [
               AppLocalizations.delegate,
