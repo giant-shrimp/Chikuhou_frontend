@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:provider/provider.dart';
-import '../../viewmodels/map/route_viewmodel.dart';
-import '../../views/map/route_screen.dart'; // 経路検索画面をインポート
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -29,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
           // Googleマップのウィジェットを配置
           GoogleMap(
             initialCameraPosition: const CameraPosition(
-              target: LatLng(33.5902, 130.4017), // 初期表示位置（福岡市に設定
+              target: LatLng(33.5902, 130.4017), // 初期表示位置（福岡市）
               zoom: 14.0,
             ),
             myLocationEnabled: true,
@@ -137,44 +136,74 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _calculateRoute() async {
-    final viewModel = context.read<RouteViewModel>();
+    try {
+      final routeData = await _fetchRouteFromAPI(
+        _originController.text,
+        _destinationController.text,
+      );
 
-    // 経路検索
-    await viewModel.fetchRoute(
-      _originController.text,
-      _destinationController.text,
-    );
+      if (routeData != null) {
+        final List<LatLng> points = _parsePoints(routeData['polyline_points']);
+        setState(() {
+          _polylines = {
+            Polyline(
+              polylineId: const PolylineId('route'),
+              points: points,
+              color: Colors.blue,
+              width: 5,
+            ),
+          };
+        });
 
-    // 経路検索が成功し、結果を取得した場合、マップに経路を描画
-    if (viewModel.route != null) {
-      final List<LatLng> points = _parsePoints(viewModel.route!.polylinePoints);
-      setState(() {
-        _polylines = {
-          Polyline(
-            polylineId: const PolylineId('route'),
-            points: points,
-            color: Colors.blue,
-            width: 5,
-          ),
-        };
-      });
-
-      // マップのカメラ位置を経路の中心に移動
-      if (_mapController != null && points.isNotEmpty) {
-        LatLngBounds bounds = _getLatLngBounds(points);
-        _mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
+        // マップを経路の中心に移動
+        if (_mapController != null && points.isNotEmpty) {
+          LatLngBounds bounds = _getLatLngBounds(points);
+          _mapController!
+              .animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('経路を取得できませんでした')),
+        );
       }
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('エラーが発生しました: $error')),
+      );
     }
   }
 
-  // JSONなどで得た経路のポイントデータを解析するメソッド
-  List<LatLng> _parsePoints(List<Map<String, double>> points) {
+  Future<Map<String, dynamic>?> _fetchRouteFromAPI(
+      String origin, String destination) async {
+    const YOUR_API_KEY =
+        "AIzaSyDpNaeH9bQiOIGrK9uFra_w5lM2R4uO_rk"; // String.fromEnvironment('API_KEY');
+    final String apiUrl =
+        'https://maps.googleapis.com/maps/api/directions/json?destination=${destination}&origin=${origin}&key=${YOUR_API_KEY}'; // APIのURL
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'origin': origin,
+        'destination': destination,
+        'mode': 'walking', // 歩行者モード
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data; // 必要なデータ構造に応じて修正
+    } else {
+      return null;
+    }
+  }
+
+  List<LatLng> _parsePoints(List<dynamic> points) {
     return points
-        .map((point) => LatLng(point['latitude']!, point['longitude']!))
+        .map((point) =>
+            LatLng(point['latitude'] as double, point['longitude'] as double))
         .toList();
   }
 
-  // ポイントのリストからLatLngBoundsを取得
   LatLngBounds _getLatLngBounds(List<LatLng> points) {
     double minLat = points.first.latitude;
     double maxLat = points.first.latitude;
