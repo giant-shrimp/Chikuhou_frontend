@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'views/widgets/common/first.dart';
-import 'views/widgets/common/second.dart';
-import '../views/settings/settings_status.dart';
+import '../widgets/common/first.dart';
+import '../widgets/common/second.dart';
+import '../../../views/settings/settings_status.dart';
 //import 'screens/third.dart';
-import '../views/home/menu.dart';
-import '../views/home/home.dart';
-import 'config/providers/status_provider.dart';
+import '../../../views/home/menu.dart';
+import '../../../views/home/home.dart';
+import '../../config/providers/status_provider.dart';
 
 class MyStatefulWidget extends ConsumerStatefulWidget {
   const MyStatefulWidget({super.key});
@@ -54,15 +54,15 @@ class _MyStatefulWidgetState extends ConsumerState<MyStatefulWidget> {
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.cloudy_snowing),
-            label: AppLocalizations.of(context)!.rain_cloud_radar,
+            label: AppLocalizations.of(context)!.sub,
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.home),
             label: AppLocalizations.of(context)!.home,
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.route),
-            label: '勾配計算',
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.route),
+            label: AppLocalizations.of(context)!.gradient,
           ),
           BottomNavigationBarItem(
             icon: Icon(statusIcon),

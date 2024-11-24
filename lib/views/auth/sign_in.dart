@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import '../../app.dart';
+import '../../config/providers/viewmodel_provider.dart';
+import '../../core/utils/dialog_helpers.dart';
+import '../app/app.dart';
+import '../widgets/common/custom_button.dart';
+import '../widgets/common/custom_text_field.dart';
 import 'sign_up.dart';
 
-class SignInScreen extends StatelessWidget {
+class SignInScreen extends ConsumerWidget {
   const SignInScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final viewModel = ref.watch(signInViewModelProvider);
+    final viewModelNotifier = ref.read(signInViewModelProvider.notifier);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.sign_in),
@@ -18,56 +26,59 @@ class SignInScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            TextField(
-              decoration: InputDecoration(
-                labelText: AppLocalizations.of(context)!.email,
-                prefixIcon: const Icon(Icons.email),
-              ),
+            // メールアドレス入力フィールド
+            CustomTextField(
+              label: AppLocalizations.of(context)!.email,
+              icon: Icons.email,
+              isPassword: false,
+              onChanged: viewModelNotifier.updateEmail,
             ),
             const SizedBox(height: 16),
-            TextField(
-              obscureText: true, // パスワード入力を非表示
-              decoration: InputDecoration(
-                labelText: AppLocalizations.of(context)!.password,
-                prefixIcon: const Icon(Icons.lock),
-              ),
+            // パスワード入力フィールド
+            CustomTextField(
+              label: AppLocalizations.of(context)!.password,
+              icon: Icons.lock,
+              isPassword: true,
+              onChanged: viewModelNotifier.updatePassword,
             ),
             const SizedBox(height: 60),
             Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                ElevatedButton(
-                  onPressed: () {
-                    // ログイン成功後、app.dartに遷移
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const MyStatefulWidget()),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white, // 背景色を白に設定
-                    foregroundColor: Colors.black, // テキスト色を黒に設定
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 12, horizontal: 50),
-                  ),
-                  child: Text(AppLocalizations.of(context)!.sign_in),
-                ),
-                const SizedBox(height: 12),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
+                CustomButton(
+                  text: AppLocalizations.of(context)!.sign_in,
+                  onPressed: () async {
+                    final success = await viewModelNotifier.signIn();
+                    if (success) {
+                      // ログイン成功後、アプリのメイン画面に遷移
+                      Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const SignUpScreen()));
+                          builder: (context) => const MyStatefulWidget(),
+                        ),
+                      );
+                    } else {
+                      // ログイン失敗時のエラーダイアログ
+                      await showDialogs(
+                        context: context,
+                        title: AppLocalizations.of(context)!.sign_in_error,
+                        confirmText: AppLocalizations.of(context)!.ok,
+                      );
+                    }
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white, // 背景色を白に設定
-                    foregroundColor: Colors.black, // テキスト色を黒に設定
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 12, horizontal: 50),
-                  ),
-                  child: Text(AppLocalizations.of(context)!.sign_up),
+                ),
+                const SizedBox(height: 12),
+                CustomButton(
+                  text: AppLocalizations.of(context)!.sign_up,
+                  onPressed: () {
+                    // サインアップ画面へ遷移
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SignUpScreen(),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
