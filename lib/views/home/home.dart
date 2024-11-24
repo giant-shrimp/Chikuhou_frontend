@@ -1,8 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:provider/provider.dart';
-import '../../viewmodels/map/route_viewmodel.dart';
-import '../../views/map/route_screen.dart'; // 経路検索画面をインポート
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Google Maps Route Display',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+      ),
+      home: const HomeScreen(),
+    );
+  }
+}
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,8 +32,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  GoogleMapController? _mapController; // Googleマップコントローラの定義
-  Set<Polyline> _polylines = {}; // 経路情報を描画するためのPolylineのセット
+  GoogleMapController? _mapController;
+  Set<Polyline> _polylines = {};
   final TextEditingController _originController = TextEditingController();
   final TextEditingController _destinationController = TextEditingController();
 
@@ -26,19 +46,16 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Stack(
         children: [
-          // Googleマップのウィジェットを配置
           GoogleMap(
             initialCameraPosition: const CameraPosition(
-              target: LatLng(33.5902, 130.4017), // 初期表示位置（福岡市に設定
+              target: LatLng(33.5902, 130.4017), // 初期表示位置（福岡市）
               zoom: 14.0,
             ),
             myLocationEnabled: true,
             myLocationButtonEnabled: true,
             mapType: MapType.normal,
-            onMapCreated: (GoogleMapController controller) {
-              _mapController = controller; // コントローラを設定
-            },
-            polylines: _polylines, // マップ上に描画するポリライン
+            onMapCreated: (controller) => _mapController = controller,
+            polylines: _polylines,
           ),
           Positioned(
             top: 16,
@@ -46,7 +63,6 @@ class _HomeScreenState extends State<HomeScreen> {
             child: IconButton(
               icon: const Icon(Icons.assistant_navigation, size: 50),
               onPressed: () {
-                // 経路検索モーダルを表示して、ユーザーからの入力を受け取る
                 _showRouteSearchModal(context);
               },
             ),
@@ -98,7 +114,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        // 出発地の入力フィールド
                         TextField(
                           controller: _originController,
                           decoration: const InputDecoration(
@@ -107,7 +122,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        // 目的地の入力フィールド
                         TextField(
                           controller: _destinationController,
                           decoration: const InputDecoration(
@@ -118,7 +132,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: () async {
-                            // 経路を計算するボタン
                             await _calculateRoute();
                             Navigator.pop(context); // モーダルを閉じる
                           },
@@ -137,44 +150,104 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _calculateRoute() async {
-    final viewModel = context.read<RouteViewModel>();
+    try {
+      final routeData = await _fetchRouteFromAPI(
+        _originController.text,
+        _destinationController.text,
+      );
 
-    // 経路検索
-    await viewModel.fetchRoute(
-      _originController.text,
-      _destinationController.text,
-    );
+      if (routeData != null) {
+        final List<LatLng> points = _decodePolyline(
+          routeData['routes'][0]['overview_polyline']['points'],
+        );
+        setState(() {
+          _polylines = {
+            Polyline(
+              polylineId: const PolylineId('route'),
+              points: points,
+              color: Colors.blue,
+              width: 5,
+            ),
+          };
+        });
 
-    // 経路検索が成功し、結果を取得した場合、マップに経路を描画
-    if (viewModel.route != null) {
-      final List<LatLng> points = _parsePoints(viewModel.route!.polylinePoints);
-      setState(() {
-        _polylines = {
-          Polyline(
-            polylineId: const PolylineId('route'),
-            points: points,
-            color: Colors.blue,
-            width: 5,
-          ),
-        };
-      });
-
-      // マップのカメラ位置を経路の中心に移動
-      if (_mapController != null && points.isNotEmpty) {
-        LatLngBounds bounds = _getLatLngBounds(points);
-        _mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
+        if (_mapController != null && points.isNotEmpty) {
+          LatLngBounds bounds = _getLatLngBounds(points);
+          _mapController!
+              .animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
+        }
+      } else {
+        _showSnackBar('経路を取得できませんでした');
       }
+    } catch (error) {
+      _showSnackBar('エラーが発生しました: $error');
     }
   }
 
-  // JSONなどで得た経路のポイントデータを解析するメソッド
-  List<LatLng> _parsePoints(List<Map<String, double>> points) {
-    return points
-        .map((point) => LatLng(point['latitude']!, point['longitude']!))
-        .toList();
+  Future<Map<String, dynamic>?> _fetchRouteFromAPI(
+      String origin, String destination) async {
+    final String apiKey = dotenv.env['API_KEY'] ?? ''; // .envからAPIキーを取得
+
+    if (apiKey.isEmpty) {
+      print('APIキーが見つかりません');
+      return null;
+    }
+
+    final encodedOrigin = Uri.encodeComponent(origin);
+    final encodedDestination = Uri.encodeComponent(destination);
+    final url =
+        'https://maps.googleapis.com/maps/api/directions/json?origin=$encodedOrigin&destination=$encodedDestination&key=$apiKey';
+
+    print('Request URL: $url'); // デバッグ用
+
+    final response = await http.get(Uri.parse(url));
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['routes'] != null && data['routes'].isNotEmpty) {
+        return data;
+      } else {
+        print(
+            'API Response Error: ${data['status']} - ${data['error_message']}');
+        return null;
+      }
+    } else {
+      print('HTTP Error: ${response.statusCode}');
+      return null;
+    }
   }
 
-  // ポイントのリストからLatLngBoundsを取得
+  List<LatLng> _decodePolyline(String encoded) {
+    List<LatLng> points = [];
+    int index = 0, len = encoded.length;
+    int lat = 0, lng = 0;
+
+    while (index < len) {
+      int b, shift = 0, result = 0;
+      do {
+        b = encoded.codeUnitAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      int dlat = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
+      lat += dlat;
+
+      shift = 0;
+      result = 0;
+      do {
+        b = encoded.codeUnitAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      int dlng = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
+      lng += dlng;
+
+      points.add(LatLng(lat / 1E5, lng / 1E5));
+    }
+
+    return points;
+  }
+
   LatLngBounds _getLatLngBounds(List<LatLng> points) {
     double minLat = points.first.latitude;
     double maxLat = points.first.latitude;
@@ -192,5 +265,10 @@ class _HomeScreenState extends State<HomeScreen> {
       southwest: LatLng(minLat, minLng),
       northeast: LatLng(maxLat, maxLng),
     );
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 }
