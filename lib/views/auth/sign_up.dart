@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../../config/providers/viewmodel_provider.dart';
+import '../../core/utils/dialog_helpers.dart';
 import '../app/app.dart';
 import '../widgets/common/custom_button.dart';
 import '../widgets/common/custom_text_field.dart';
 
-class SignUpScreen extends StatelessWidget {
+class SignUpScreen extends ConsumerWidget {
   const SignUpScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final viewModel = ref.watch(signUpViewModelProvider);
+    final viewModelNotifier = ref.read(signUpViewModelProvider.notifier);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.sign_up),
@@ -22,36 +28,50 @@ class SignUpScreen extends StatelessWidget {
               label: AppLocalizations.of(context)!.username,
               icon: Icons.account_circle,
               isPassword: false,
+              onChanged: viewModelNotifier.updateUsername,
             ),
             const SizedBox(height: 16),
             CustomTextField(
               label: AppLocalizations.of(context)!.email,
               icon: Icons.email,
               isPassword: false,
+              onChanged: viewModelNotifier.updateEmail,
             ),
             const SizedBox(height: 16),
             CustomTextField(
               label: AppLocalizations.of(context)!.password,
               icon: Icons.lock,
               isPassword: true,
+              onChanged: viewModelNotifier.updatePassword,
             ),
             const SizedBox(height: 16),
             CustomTextField(
               label: AppLocalizations.of(context)!.password_confirmation,
               icon: Icons.lock,
               isPassword: true,
+              onChanged: viewModelNotifier.updatePasswordConfirmation,
             ),
             const SizedBox(height: 60),
             CustomButton(
               text: AppLocalizations.of(context)!.sign_up,
-              onPressed: () {
-                // ログイン成功後、アプリのメイン画面に遷移
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const MyStatefulWidget(),
-                  ),
-                );
+              onPressed: () async {
+                final success = await viewModelNotifier.signUp();
+                if (success) {
+                  // サインアップ成功後、アプリのメイン画面に遷移
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const MyStatefulWidget(),
+                    ),
+                  );
+                } else {
+                  // サインアップ失敗時のエラー表示
+                  await showDialogs(
+                    context: context,
+                    title: AppLocalizations.of(context)!.sign_up_error,
+                    confirmText: AppLocalizations.of(context)!.ok,
+                  );
+                }
               },
             ),
           ],
