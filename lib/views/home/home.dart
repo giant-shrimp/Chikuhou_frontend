@@ -57,16 +57,6 @@ class _HomeScreenState extends State<HomeScreen> {
             onMapCreated: (controller) => _mapController = controller,
             polylines: _polylines,
           ),
-          Positioned(
-            top: 16,
-            right: 16,
-            child: IconButton(
-              icon: const Icon(Icons.assistant_navigation, size: 50),
-              onPressed: () {
-                _showRouteSearchModal(context);
-              },
-            ),
-          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
