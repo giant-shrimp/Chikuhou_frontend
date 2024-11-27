@@ -3,18 +3,33 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../config/providers/sub_provider.dart';
 
-class DragDropScreen extends StatelessWidget {
+// 選択されたアイテムの状態を管理するプロバイダー
+final selectedItemProvider = StateNotifierProvider<SelectedItemNotifier, Map<String, dynamic>>(
+      (ref) => SelectedItemNotifier(),
+);
+
+class SelectedItemNotifier extends StateNotifier<Map<String, dynamic>> {
+  SelectedItemNotifier() : super({'icon': Icons.cloudy_snowing, 'label': '雨雲レーダー'});
+
+  void selectItem(Map<String, dynamic> item) {
+    state = item;
+  }
+}
+
+class DragDropScreen extends ConsumerWidget {
   const DragDropScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedItem = ref.watch(selectedItemProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.sub_extension),
       ),
       body: Stack(
         children: [
-          const DragDropContainer(), // ドラッグドロップエリア
+          const DragDropContainer(), // アイコン選択エリア
           Align(
             alignment: Alignment.bottomCenter,
             child: BottomNavigationBar(
@@ -25,7 +40,7 @@ class DragDropScreen extends StatelessWidget {
                     icon: const Icon(Icons.table_rows_rounded),
                     label: AppLocalizations.of(context)!.menu),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.cloudy_snowing, color: Colors.indigo[400]),
+                  icon: Icon(selectedItem['icon'], color: Colors.indigo[400]),
                   label: AppLocalizations.of(context)!.sub,
                 ),
                 BottomNavigationBarItem(
@@ -43,7 +58,7 @@ class DragDropScreen extends StatelessWidget {
               unselectedItemColor: Colors.grey, // 未選択のアイテムの色
             ),
           ),
-          // 上部に空箱を追加
+          // 上部に選択されたアイテムを表示
           Positioned(
             top: 590,
             left: 0,
@@ -51,15 +66,10 @@ class DragDropScreen extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                //const EmptyBox(),
                 EmptyBox1(
-                  icon: Icons.cloudy_snowing,
-                  label: AppLocalizations.of(context)!.rain_cloud_radar,
+                  icon: selectedItem['icon'],
+                  label: selectedItem['label'],
                 ),
-                // EmptyBox2(
-                //   icon: Icons.volume_up,
-                //   label: AppLocalizations.of(context)!.audio_guidance,
-                // ),
               ],
             ),
           ),
@@ -85,35 +95,20 @@ class DragDropContainer extends HookConsumerWidget {
       itemBuilder: (context, index) {
         // ローカライズされたラベルを取得
         final localizedLabel =
-            _getLocalizedLabel(context, items[index]['label']);
+        _getLocalizedLabel(context, items[index]['label']);
 
-        return DragTarget<Map<String, dynamic>>(
-          onAccept: (receivedItem) {
-            ref.read(dragDropItemsProvider.notifier).update((state) {
-              final draggedIndex = state.indexOf(receivedItem);
-              final tempItem = state[index];
-              state[index] = receivedItem;
-              state[draggedIndex] = tempItem;
-              return [...state];
+        return GestureDetector(
+          onTap: () {
+            // アイテムを選択
+            ref.read(selectedItemProvider.notifier).selectItem({
+              'icon': items[index]['icon'],
+              'label': localizedLabel,
             });
           },
-          onWillAccept: (receivedItem) => receivedItem != items[index],
-          builder: (context, candidateData, rejectedData) {
-            return Draggable<Map<String, dynamic>>(
-              data: items[index],
-              feedback: Material(
-                child: DragItem(
-                  icon: items[index]['icon'],
-                  label: localizedLabel,
-                ),
-              ),
-              childWhenDragging: Container(),
-              child: DragItem(
-                icon: items[index]['icon'],
-                label: localizedLabel,
-              ),
-            );
-          },
+          child: DragItem(
+            icon: items[index]['icon'],
+            label: localizedLabel,
+          ),
         );
       },
     );
@@ -173,30 +168,6 @@ class DragItem extends StatelessWidget {
   }
 }
 
-// 空の箱ウィジェット
-class EmptyBox extends StatelessWidget {
-  const EmptyBox({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 125,
-      height: 125,
-      decoration: BoxDecoration(
-        color: Colors.grey[400], // 背景色を設定
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: const Center(
-        child: Text(
-          '右のボックスに\nサブ機能を入れて\nカスタマイズする\nことができます',
-          style: TextStyle(color: Colors.black),
-        ),
-      ),
-    );
-  }
-}
-
-// アイコンとラベルを持つ空箱ウィジェット
 class EmptyBox1 extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -214,41 +185,6 @@ class EmptyBox1 extends StatelessWidget {
       height: 125,
       decoration: BoxDecoration(
         color: Colors.indigo[400], // 背景色を設定
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: Colors.white, size: 50),
-          const SizedBox(height: 10),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class EmptyBox2 extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const EmptyBox2({
-    super.key,
-    required this.icon,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 125,
-      height: 125,
-      decoration: BoxDecoration(
-        color: Colors.redAccent, // 背景色を設定
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
