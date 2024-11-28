@@ -2,68 +2,118 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
-import 'dart:developer';
 
 class RouteViewModel extends ChangeNotifier {
   final String apiKey;
-  Set<Polyline> _polylines = {};
 
   RouteViewModel({required this.apiKey});
 
-  Set<Polyline> get polylines => _polylines;
+  Future<List<Map<String, dynamic>>> fetchMultipleRoutes(
+    String origin,
+    String destination,
+    String apiKey, {
+    int maxRoutes = 21,
+  }) async {
+    final originalRoute = await _fetchOriginalRoute(origin, destination);
+    final originalPolyline =
+        decodePolyline(originalRoute['overview_polyline']['points']);
+    List<Map<String, dynamic>> multipleRoutes = [originalRoute];
 
-  Future<void> calculateRoute(String origin, String destination) async {
-    try {
-      final routeData = await _fetchRouteFromAPI(origin, destination);
+    // 中間地点の割合リスト
+    List<double> fractions = [
+      0.5,
+      0.25,
+      0.75,
+      0.125,
+      0.375,
+      0.625,
+      0.875,
+      0.1875,
+      0.3125,
+      0.4375,
+      0.5625,
+      0.6875,
+      0.8125,
+      0.9375,
+    ];
 
-      if (routeData != null) {
-        final List<LatLng> points = _decodePolyline(
-          routeData['routes'][0]['overview_polyline']['points'],
-        );
+    while (multipleRoutes.length < maxRoutes) {
+      bool newRouteAdded = false;
 
-        _polylines = {
-          Polyline(
-            polylineId: const PolylineId('route'),
-            points: points,
-            color: Colors.blue,
-            width: 5,
-            zIndex: 1,
-          ),
-        };
+      for (double fraction in fractions) {
+        final intermediatePoint =
+            _getIntermediatePoint(originalPolyline, fraction);
+        final alternativeRoutes =
+            await _fetchAlternativeRoutes(intermediatePoint, destination);
 
-        notifyListeners();
-      } else {
-        throw Exception('経路を取得できませんでした');
+        for (final route in alternativeRoutes) {
+          if (multipleRoutes.length >= maxRoutes) break;
+
+          // original_polyline と一致する場合をスキップ
+          if (route['overview_polyline']['points'] ==
+              originalRoute['overview_polyline']['points']) {
+            continue;
+          }
+
+          // 重複チェック
+          if (!multipleRoutes.any((r) =>
+              r['overview_polyline']['points'] ==
+              route['overview_polyline']['points'])) {
+            multipleRoutes.add(route);
+            newRouteAdded = true;
+          }
+        }
       }
-    } catch (error) {
-      throw Exception('エラーが発生しました: $error');
+
+      if (!newRouteAdded) {
+        // 新しいルートが追加されなかった場合はループを終了
+        break;
+      }
     }
+
+    return multipleRoutes;
   }
 
-  Future<Map<String, dynamic>?> _fetchRouteFromAPI(
+  Future<Map<String, dynamic>> _fetchOriginalRoute(
       String origin, String destination) async {
-    final encodedOrigin = Uri.encodeComponent(origin);
-    final encodedDestination = Uri.encodeComponent(destination);
     final url =
-        'https://maps.googleapis.com/maps/api/directions/json?origin=$encodedOrigin&destination=$encodedDestination&key=$apiKey';
-
-    log('Fetching route data from URL: $url');
-
+        'https://maps.googleapis.com/maps/api/directions/json?origin=$origin&destination=$destination&key=$apiKey&alternatives=false';
     final response = await http.get(Uri.parse(url));
-
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data['routes'] != null && data['routes'].isNotEmpty) {
-        return data;
+        return data['routes'][0];
       } else {
-        throw Exception('APIエラー: ${data['status']} - ${data['error_message']}');
+        throw Exception('ルートが見つかりませんでした');
       }
     } else {
       throw Exception('HTTPエラー: ${response.statusCode}');
     }
   }
 
-  List<LatLng> _decodePolyline(String encoded) {
+  Future<List<Map<String, dynamic>>> _fetchAlternativeRoutes(
+      LatLng point, String destination) async {
+    final url =
+        'https://maps.googleapis.com/maps/api/directions/json?origin=${point.latitude},${point.longitude}&destination=$destination&key=$apiKey&alternatives=true';
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['routes'] != null && data['routes'].isNotEmpty) {
+        return List<Map<String, dynamic>>.from(data['routes']);
+      } else {
+        throw Exception('代替ルートが見つかりませんでした');
+      }
+    } else {
+      throw Exception('HTTPエラー: ${response.statusCode}');
+    }
+  }
+
+  LatLng _getIntermediatePoint(List<LatLng> points, double fraction) {
+    final index = (points.length * fraction).toInt();
+    return points[index.clamp(0, points.length - 1)];
+  }
+
+  List<LatLng> decodePolyline(String encoded) {
     List<LatLng> points = [];
     int index = 0, len = encoded.length;
     int lat = 0, lng = 0;
@@ -92,24 +142,5 @@ class RouteViewModel extends ChangeNotifier {
     }
 
     return points;
-  }
-
-  LatLngBounds getLatLngBounds(List<LatLng> points) {
-    double minLat = points.first.latitude;
-    double maxLat = points.first.latitude;
-    double minLng = points.first.longitude;
-    double maxLng = points.first.longitude;
-
-    for (LatLng point in points) {
-      if (point.latitude < minLat) minLat = point.latitude;
-      if (point.latitude > maxLat) maxLat = point.latitude;
-      if (point.longitude < minLng) minLng = point.longitude;
-      if (point.longitude > maxLng) maxLng = point.longitude;
-    }
-
-    return LatLngBounds(
-      southwest: LatLng(minLat, minLng),
-      northeast: LatLng(maxLat, maxLng),
-    );
   }
 }

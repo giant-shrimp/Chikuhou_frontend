@@ -36,6 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Set<Polyline> _polylines = {};
   final TextEditingController _originController = TextEditingController();
   final TextEditingController _destinationController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +58,10 @@ class _HomeScreenState extends State<HomeScreen> {
             onMapCreated: (controller) => _mapController = controller,
             polylines: _polylines,
           ),
+          if (_isLoading)
+            const Center(
+              child: CircularProgressIndicator(),
+            ),
           Positioned(
             top: 16,
             right: 16,
@@ -85,9 +90,8 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _showRouteSearchModal(BuildContext context) {
+  Future<void> _showRouteSearchModal(BuildContext context) async {
     String apiKey = dotenv.env['API_KEY']!;
-
     final routeViewModel = RouteViewModel(apiKey: apiKey);
 
     showModalBottomSheet(
@@ -117,7 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       children: [
                         const Text(
-                          '経路',
+                          '複数ルート検索',
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -127,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         TextFormField(
                           controller: _originController,
                           decoration: const InputDecoration(
-                            labelText: 'ここから',
+                            labelText: '出発地',
                             suffixIcon: Icon(Icons.arrow_forward_ios),
                           ),
                         ),
@@ -135,32 +139,68 @@ class _HomeScreenState extends State<HomeScreen> {
                         TextFormField(
                           controller: _destinationController,
                           decoration: const InputDecoration(
-                            labelText: 'ここまで',
+                            labelText: '目的地',
                             suffixIcon: Icon(Icons.arrow_forward_ios),
                           ),
                         ),
                         const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: () async {
+                            setState(() {
+                              _isLoading = true;
+                            });
+
                             try {
-                              await routeViewModel.calculateRoute(
+                              final multipleRoutes =
+                                  await routeViewModel.fetchMultipleRoutes(
                                 _originController.text,
                                 _destinationController.text,
+                                apiKey,
+                                maxRoutes: 21,
                               );
-                              _setPolylines(routeViewModel.polylines);
 
-                              final bounds = routeViewModel.getLatLngBounds(
-                                routeViewModel.polylines.first.points,
-                              );
-                              _mapController?.animateCamera(
-                                CameraUpdate.newLatLngBounds(bounds, 50),
-                              );
+                              print(
+                                  'Number of routes fetched: ${multipleRoutes.length}');
+
+                              final Set<Polyline> polylines = {};
+                              for (int i = 0; i < multipleRoutes.length; i++) {
+                                final route = multipleRoutes[i];
+                                final points = routeViewModel.decodePolyline(
+                                  route['overview_polyline']['points'],
+                                );
+
+                                polylines.add(
+                                  Polyline(
+                                    polylineId: PolylineId('route_$i'),
+                                    points: points,
+                                    color: Colors
+                                        .primaries[i % Colors.primaries.length]
+                                        .withOpacity(0.7),
+                                    width: 5,
+                                  ),
+                                );
+
+                                // 各ルートの詳細を出力
+                                print('--- Route $i ---');
+                                print(
+                                    'Distance: ${route['legs'][0]['distance']['text']}');
+                                print(
+                                    'Duration: ${route['legs'][0]['duration']['text']}');
+                                print(
+                                    'Polyline: ${route['overview_polyline']['points']}');
+                              }
+
+                              _setPolylines(polylines);
                             } catch (error) {
-                              print('Error in route calculation: $error');
+                              print('ルート取得エラー: $error');
+                            } finally {
+                              setState(() {
+                                _isLoading = false;
+                              });
+                              Navigator.pop(context);
                             }
-                            Navigator.pop(context);
                           },
-                          child: const Text('経路を計算'),
+                          child: const Text('ルート検索'),
                         ),
                       ],
                     ),
