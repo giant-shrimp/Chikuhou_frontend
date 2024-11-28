@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'dart:developer';
 
 class RouteViewModel extends ChangeNotifier {
   final String apiKey;
@@ -11,7 +12,6 @@ class RouteViewModel extends ChangeNotifier {
 
   Set<Polyline> get polylines => _polylines;
 
-  /// 経路計算
   Future<void> calculateRoute(String origin, String destination) async {
     try {
       final routeData = await _fetchRouteFromAPI(origin, destination);
@@ -27,6 +27,7 @@ class RouteViewModel extends ChangeNotifier {
             points: points,
             color: Colors.blue,
             width: 5,
+            zIndex: 1,
           ),
         };
 
@@ -39,13 +40,14 @@ class RouteViewModel extends ChangeNotifier {
     }
   }
 
-  /// Google Maps API経由で経路データを取得
   Future<Map<String, dynamic>?> _fetchRouteFromAPI(
       String origin, String destination) async {
     final encodedOrigin = Uri.encodeComponent(origin);
     final encodedDestination = Uri.encodeComponent(destination);
     final url =
         'https://maps.googleapis.com/maps/api/directions/json?origin=$encodedOrigin&destination=$encodedDestination&key=$apiKey';
+
+    log('Fetching route data from URL: $url');
 
     final response = await http.get(Uri.parse(url));
 
@@ -61,7 +63,6 @@ class RouteViewModel extends ChangeNotifier {
     }
   }
 
-  /// Polylineデコード
   List<LatLng> _decodePolyline(String encoded) {
     List<LatLng> points = [];
     int index = 0, len = encoded.length;
@@ -93,7 +94,6 @@ class RouteViewModel extends ChangeNotifier {
     return points;
   }
 
-  /// LatLngBoundsを計算
   LatLngBounds getLatLngBounds(List<LatLng> points) {
     double minLat = points.first.latitude;
     double maxLat = points.first.latitude;

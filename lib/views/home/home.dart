@@ -3,7 +3,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../viewmodels/map/route_viewmodel.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+void main() async {
+  await dotenv.load(fileName: ".env"); // dotenvファイルをロード
   runApp(const MyApp());
 }
 
@@ -47,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           GoogleMap(
             initialCameraPosition: const CameraPosition(
-              target: LatLng(33.5902, 130.4017), // 初期表示位置（福岡市）
+              target: LatLng(33.5902, 130.4017), // 福岡市
               zoom: 14.0,
             ),
             myLocationEnabled: true,
@@ -76,6 +77,12 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
     );
+  }
+
+  void _setPolylines(Set<Polyline> polylines) {
+    setState(() {
+      _polylines = polylines;
+    });
   }
 
   void _showRouteSearchModal(BuildContext context) {
@@ -117,7 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        TextField(
+                        TextFormField(
                           controller: _originController,
                           decoration: const InputDecoration(
                             labelText: 'ここから',
@@ -125,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        TextField(
+                        TextFormField(
                           controller: _destinationController,
                           decoration: const InputDecoration(
                             labelText: 'ここまで',
@@ -135,11 +142,23 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: () async {
-                            await routeViewModel.calculateRoute(
-                              _originController.text,
-                              _destinationController.text,
-                            );
-                            Navigator.pop(context); // モーダルを閉じる
+                            try {
+                              await routeViewModel.calculateRoute(
+                                _originController.text,
+                                _destinationController.text,
+                              );
+                              _setPolylines(routeViewModel.polylines);
+
+                              final bounds = routeViewModel.getLatLngBounds(
+                                routeViewModel.polylines.first.points,
+                              );
+                              _mapController?.animateCamera(
+                                CameraUpdate.newLatLngBounds(bounds, 50),
+                              );
+                            } catch (error) {
+                              print('Error in route calculation: $error');
+                            }
+                            Navigator.pop(context);
                           },
                           child: const Text('経路を計算'),
                         ),
