@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../viewmodels/map/route_viewmodel.dart';
+import '../../viewmodels/map/gradient_calculator.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
@@ -43,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('アルケール'),
+        title: const Text('複数ルート表示'),
         automaticallyImplyLeading: false,
       ),
       body: Stack(
@@ -64,16 +65,20 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.8),
+                  color: Colors.white.withOpacity(0.8), // 半透明の白背景
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const CircularProgressIndicator(),
+                    LinearProgressIndicator(
+                      value: _loadingRoutesCount / 20, // 最大20ルートを基準
+                      backgroundColor: Colors.grey[200],
+                      color: Colors.deepPurple,
+                    ),
                     const SizedBox(height: 16),
                     Text(
-                      '取得中のルート数: $_loadingRoutesCount / 20',
+                      '取得中のルート数: $_loadingRoutesCount',
                       style: const TextStyle(fontSize: 16),
                     ),
                   ],
@@ -139,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       children: [
                         const Text(
-                          'ルート検索',
+                          '複数ルート検索',
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -164,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: () async {
-                            Navigator.pop(context);
+                            Navigator.pop(context); // モーダルを閉じる
                             setState(() {
                               _isLoading = true;
                               _loadingRoutesCount = 0; // 初期化
@@ -176,29 +181,55 @@ class _HomeScreenState extends State<HomeScreen> {
                                 _originController.text,
                                 _destinationController.text,
                                 apiKey,
-                                maxRoutes: 10,
                               );
 
-                              final Set<Polyline> polylines = {};
+                              final List<List<double>> elevationsList = [];
+                              final Set<Polyline> allPolylines = {};
+                              LatLngBounds? bounds;
+
+                              // カラフルな色リスト
+                              final List<Color> colors = [
+                                Colors.red,
+                                Colors.green,
+                                Colors.blue,
+                                Colors.orange,
+                                Colors.purple,
+                                Colors.pink,
+                                Colors.teal,
+                                Colors.cyan,
+                                Colors.amber,
+                                Colors.lime,
+                              ];
+
                               for (int i = 0; i < multipleRoutes.length; i++) {
                                 final route = multipleRoutes[i];
                                 final points = routeViewModel.decodePolyline(
-                                  route['overview_polyline']['points'],
-                                );
-
-                                polylines.add(
-                                  Polyline(
-                                    polylineId: PolylineId('route_$i'),
-                                    points: points,
-                                    color: Colors
-                                        .primaries[i % Colors.primaries.length]
-                                        .withOpacity(0.7),
-                                    width: 5,
-                                  ),
-                                );
+                                    route['overview_polyline']['points']);
 
                                 final elevations = await routeViewModel
                                     .fetchElevationsForPolyline(points);
+
+                                elevationsList.add(elevations);
+
+                                allPolylines.add(
+                                  Polyline(
+                                    polylineId: PolylineId('route_$i'),
+                                    points: points,
+                                    color: colors[i % colors.length],
+                                    width: 3,
+                                  ),
+                                );
+
+                                if (bounds == null) {
+                                  bounds = _calculateBounds(points);
+                                } else {
+                                  bounds = _expandBounds(bounds, points);
+                                }
+
+                                setState(() {
+                                  _loadingRoutesCount = i + 1;
+                                  _polylines = allPolylines;
+                                });
 
                                 print('--- Route $i ---');
                                 print(
@@ -207,15 +238,52 @@ class _HomeScreenState extends State<HomeScreen> {
                                     'Duration: ${route['legs'][0]['duration']['text']}');
                                 print(
                                     'Polyline: ${route['overview_polyline']['points']}');
-                                print('Elevations: $elevations');
-
-                                // ローディング中のルート数を更新
-                                setState(() {
-                                  _loadingRoutesCount = i + 1;
-                                });
                               }
 
-                              _setPolylines(polylines);
+                              if (bounds != null) {
+                                _mapController?.animateCamera(
+                                  CameraUpdate.newLatLngBounds(bounds, 50),
+                                );
+                              }
+
+                              await Future.delayed(const Duration(seconds: 2));
+
+                              final gradientCalculator = GradientCalculator();
+                              final leastGradientRoute =
+                                  gradientCalculator.findLeastGradientRoute(
+                                multipleRoutes,
+                                elevationsList,
+                              );
+
+                              final leastGradientPoints =
+                                  routeViewModel.decodePolyline(
+                                leastGradientRoute['overview_polyline']
+                                    ['points'],
+                              );
+
+                              setState(() {
+                                _polylines = {
+                                  Polyline(
+                                    polylineId: const PolylineId(
+                                        'least_gradient_route'),
+                                    points: leastGradientPoints,
+                                    color: Colors.blue.withOpacity(0.7),
+                                    width: 5,
+                                  ),
+                                };
+                              });
+
+                              final routeBounds =
+                                  _calculateBounds(leastGradientPoints);
+                              _mapController?.animateCamera(
+                                CameraUpdate.newLatLngBounds(routeBounds, 50),
+                              );
+
+                              print("最も勾配の緩いルートの詳細:");
+                              print(
+                                  "距離: ${leastGradientRoute['legs'][0]['distance']['text']}");
+                              print(
+                                  "所要時間: ${leastGradientRoute['legs'][0]['duration']['text']}");
                             } catch (error) {
                               print('ルート取得エラー: $error');
                             } finally {
@@ -235,6 +303,44 @@ class _HomeScreenState extends State<HomeScreen> {
           },
         );
       },
+    );
+  }
+
+  LatLngBounds _calculateBounds(List<LatLng> points) {
+    double? minLat, maxLat, minLng, maxLng;
+
+    for (final point in points) {
+      if (minLat == null || point.latitude < minLat) minLat = point.latitude;
+      if (maxLat == null || point.latitude > maxLat) maxLat = point.latitude;
+      if (minLng == null || point.longitude < minLng) minLng = point.longitude;
+      if (maxLng == null || point.longitude > maxLng) maxLng = point.longitude;
+    }
+
+    return LatLngBounds(
+      southwest: LatLng(minLat!, minLng!),
+      northeast: LatLng(maxLat!, maxLng!),
+    );
+  }
+
+  LatLngBounds _expandBounds(LatLngBounds bounds, List<LatLng> points) {
+    final additionalBounds = _calculateBounds(points);
+    return LatLngBounds(
+      southwest: LatLng(
+        bounds.southwest.latitude < additionalBounds.southwest.latitude
+            ? bounds.southwest.latitude
+            : additionalBounds.southwest.latitude,
+        bounds.southwest.longitude < additionalBounds.southwest.longitude
+            ? bounds.southwest.longitude
+            : additionalBounds.southwest.longitude,
+      ),
+      northeast: LatLng(
+        bounds.northeast.latitude > additionalBounds.northeast.latitude
+            ? bounds.northeast.latitude
+            : additionalBounds.northeast.latitude,
+        bounds.northeast.longitude > additionalBounds.northeast.longitude
+            ? bounds.northeast.longitude
+            : additionalBounds.northeast.longitude,
+      ),
     );
   }
 }

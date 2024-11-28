@@ -50,12 +50,6 @@ class RouteViewModel extends ChangeNotifier {
             await _fetchAlternativeRoutes(intermediatePoint, destination);
 
         for (final route in alternativeRoutes) {
-          if (multipleRoutes.length >= 20) {
-            print('ルート本数: ${multipleRoutes.length}');
-            print('最大ルート数に達しました: ${multipleRoutes.length}');
-            break;
-          }
-
           if (!multipleRoutes.any((r) =>
               r['overview_polyline']['points'] ==
               route['overview_polyline']['points'])) {
@@ -100,7 +94,7 @@ class RouteViewModel extends ChangeNotifier {
       List<LatLng> polylinePoints) async {
     const double segmentDistance = 50.0; // 50m間隔
     final List<LatLng> interpolatedPoints =
-        _interpolatePolyline(polylinePoints, segmentDistance); // 補間された座標リストを取得
+        _interpolatePolyline(polylinePoints, segmentDistance);
     final List<double> elevations = [];
 
     for (int i = 0; i < interpolatedPoints.length; i += 500) {
@@ -111,8 +105,12 @@ class RouteViewModel extends ChangeNotifier {
             : i + 500,
       );
 
-      final elevationResults = await _fetchElevations(chunk);
-      elevations.addAll(elevationResults);
+      try {
+        final elevationResults = await _fetchElevations(chunk);
+        elevations.addAll(elevationResults);
+      } catch (e) {
+        print('高度データ取得エラー: $e');
+      }
     }
 
     return elevations;

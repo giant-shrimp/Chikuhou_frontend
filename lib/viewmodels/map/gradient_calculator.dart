@@ -17,21 +17,16 @@ class GradientCalculator {
       final elevations = elevationsList[i];
       final polyline = decodePolyline(route['overview_polyline']['points']);
 
-      if (polyline.length != elevations.length) {
-        throw Exception("ポリラインと高度データの長さが一致しません。");
-      }
-
       double totalGradient = 0.0;
 
-      for (int j = 0; j < polyline.length - 1; j++) {
-        final start = polyline[j];
-        final end = polyline[j + 1];
-
+      for (int i = 0;
+          i < polyline.length - 1 && i < elevations.length - 1;
+          i++) {
         // 2点間の直線距離を計算
-        final a = _calculateDistance(start, end);
+        final a = 50.0; // 50m間隔
 
         // 高度差を計算
-        final b = elevations[j + 1] - elevations[j];
+        final b = elevations[i + 1] - elevations[i];
 
         // 勾配を計算 (b が 0 に近い場合は無視)
         if (b != 0) {
