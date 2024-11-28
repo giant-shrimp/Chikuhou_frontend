@@ -37,6 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _originController = TextEditingController();
   final TextEditingController _destinationController = TextEditingController();
   bool _isLoading = false;
+  int _loadingRoutesCount = 0; // ローディング中のルート数を追跡
 
   @override
   Widget build(BuildContext context) {
@@ -59,8 +60,25 @@ class _HomeScreenState extends State<HomeScreen> {
             polylines: _polylines,
           ),
           if (_isLoading)
-            const Center(
-              child: CircularProgressIndicator(),
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.8),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const CircularProgressIndicator(),
+                    const SizedBox(height: 16),
+                    Text(
+                      '取得中のルート数: $_loadingRoutesCount / 20',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ],
+                ),
+              ),
             ),
           Positioned(
             top: 16,
@@ -121,7 +139,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       children: [
                         const Text(
-                          '複数ルート検索',
+                          'ルート検索',
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -146,8 +164,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: () async {
+                            Navigator.pop(context);
                             setState(() {
                               _isLoading = true;
+                              _loadingRoutesCount = 0; // 初期化
                             });
 
                             try {
@@ -156,11 +176,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 _originController.text,
                                 _destinationController.text,
                                 apiKey,
-                                maxRoutes: 21,
+                                maxRoutes: 10,
                               );
-
-                              print(
-                                  'Number of routes fetched: ${multipleRoutes.length}');
 
                               final Set<Polyline> polylines = {};
                               for (int i = 0; i < multipleRoutes.length; i++) {
@@ -180,7 +197,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 );
 
-                                // 各ルートの詳細を出力
+                                final elevations = await routeViewModel
+                                    .fetchElevationsForPolyline(points);
+
                                 print('--- Route $i ---');
                                 print(
                                     'Distance: ${route['legs'][0]['distance']['text']}');
@@ -188,6 +207,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                     'Duration: ${route['legs'][0]['duration']['text']}');
                                 print(
                                     'Polyline: ${route['overview_polyline']['points']}');
+                                print('Elevations: $elevations');
+
+                                // ローディング中のルート数を更新
+                                setState(() {
+                                  _loadingRoutesCount = i + 1;
+                                });
                               }
 
                               _setPolylines(polylines);
@@ -197,7 +222,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               setState(() {
                                 _isLoading = false;
                               });
-                              Navigator.pop(context);
                             }
                           },
                           child: const Text('ルート検索'),
