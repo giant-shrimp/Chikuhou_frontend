@@ -1,22 +1,42 @@
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/user_model.dart';
 
 /// 認証に関する処理を提供するサービスクラス
 class AuthService {
   /// ユーザーを保存する仮のデータストア
   final Map<String, UserModel> _userStore = {};
+  ///firestoreを用いた認証サービス用
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   /// サインイン処理
   Future<bool> signIn({
     required String email,
     required String password,
   }) async {
-    // ユーザーが存在するか確認
-    final user = _userStore[email];
-    if (password == '123') {
-      return true; // 認証成功
+    ///firestoreからユーザー情報を取得
+    try {
+      // Firestoreからメールアドレスとパスワードが一致するユーザーを取得
+      final querySnapshot = await _firestore
+          .collection('users') // コレクション名を確認
+          .where('email', isEqualTo: email)
+          .where('password', isEqualTo: password)
+          .get();
+
+      // ユーザーが存在するか確認
+      if (querySnapshot.docs.isNotEmpty) {
+        // 認証成功
+        return true;
+      }
+
+      // 認証失敗
+      return false;
+    } catch (e) {
+      print('Error during signIn: $e');
+      return false; // エラー時も認証失敗とする
     }
-    return false; // 認証失敗
   }
 
   /// サインアップ処理
@@ -24,40 +44,53 @@ class AuthService {
     required String email,
     required String password,
     required String username,
-    required String passwordConfirmation,
   }) async {
     // メールアドレスが既に存在するか確認
-    if (_userStore.containsKey(email)) {
+    final querySnapshot = await _firestore
+        .collection('users')
+        .where('email', isEqualTo: email)
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      print("Email already exists");
       return false; // メールアドレスが既に登録済み
     }
 
-    // パスワードの一致を確認
-    if (password != passwordConfirmation) {
-      return false; // パスワード不一致
-    }
-
-    // 仮の登録処理
-    final user = UserModel(
-      userName: username,
-      email: email,
-      phone: '', // 必要であれば入力を追加
-    );
-    _userStore[email] = user;
-
+    // Firestoreにユーザー情報を保存
+    final newDocRef = _firestore.collection('users').doc();
+    await newDocRef.set({
+      'id': newDocRef.id,
+      'user': username,
+      'password': password,
+      'email': email,
+    });
+    print("SignUp successful");
     return true; // サインアップ成功
   }
 
   /// パスワード変更処理
   Future<bool> changePassword({
+    required String email,
     required String currentPassword,
     required String newPassword,
   }) async {
-    // 仮の処理（実際の実装ではAPI呼び出しを行う）
+    // 現在のパスワードが正しいか確認
+    final querySnapshot = await _firestore
+        .collection('users')
+        .where('email', isEqualTo: email)
+        .where('password', isEqualTo: currentPassword)
+        .get();
 
-
-    if (currentPassword == '123') { // 仮の条件
-      return true; // パスワード変更成功
+    if (querySnapshot.docs.isEmpty) {
+      return false; // 現在のパスワードが間違っている
     }
-    return false; // パスワード変更失敗
+
+    // パスワードを更新
+    final docId = querySnapshot.docs.first.id;
+    await _firestore.collection('users').doc(docId).update({
+      'password': newPassword,
+    });
+
+    return true; // パスワード変更成功
   }
 }
