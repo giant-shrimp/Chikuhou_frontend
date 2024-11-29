@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import '../../../config/providers/status_provider.dart';
 import '../../../config/providers/sub_provider.dart';
+import '../../settings/settings_status.dart';
 
 // 選択されたアイテムの状態を管理するプロバイダー
 final selectedItemProvider = StateNotifierProvider<SelectedItemNotifier, Map<String, dynamic>>(
@@ -21,6 +23,11 @@ class DragDropScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // 現在のステータスを取得
+    final currentStatus = ref.watch(statusProvider);
+    final statusDetails = getStatusDetails(context, currentStatus);
+    IconData statusIcon = statusDetails['icon'];
+    // 選択したサブ機能を取得
     final selectedItem = ref.watch(selectedItemProvider);
 
     return Scaffold(
@@ -50,7 +57,7 @@ class DragDropScreen extends ConsumerWidget {
                     icon: const Icon(Icons.route),
                     label: AppLocalizations.of(context)!.gradient),
                 BottomNavigationBarItem(
-                    icon: const Icon(Icons.directions_walk_sharp),
+                    icon: Icon(statusIcon),
                     label: AppLocalizations.of(context)!.status),
               ],
               type: BottomNavigationBarType.fixed,
@@ -94,8 +101,7 @@ class DragDropContainer extends HookConsumerWidget {
       itemCount: items.length,
       itemBuilder: (context, index) {
         // ローカライズされたラベルを取得
-        final localizedLabel =
-        _getLocalizedLabel(context, items[index]['label']);
+        final localizedLabel = _getLocalizedLabel(context, items[index]['label']);
 
         return GestureDetector(
           onTap: () {
