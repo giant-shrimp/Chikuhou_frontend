@@ -87,11 +87,15 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showRouteSearchModal(context);
-        },
-        child: const Icon(Icons.south),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 15.0), // 下からの余白を調整
+        child: FloatingActionButton(
+          onPressed: () {
+            _showRouteSearchModal(context);
+          },
+          backgroundColor: Colors.white.withOpacity(0.8),
+          child: const Icon(Icons.south),
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
     );
@@ -156,7 +160,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             suffixIcon: Icon(Icons.arrow_forward_ios),
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 26),
                         ElevatedButton(
                           onPressed: () async {
                             Navigator.pop(context); // モーダルを閉じる
@@ -238,7 +242,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         'least_gradient_route'),
                                     points: leastGradientPoints,
                                     color: Colors.green.withOpacity(0.7),
-                                    width: 5,
+                                    width: 12,
                                   ),
                                 };
                               });
