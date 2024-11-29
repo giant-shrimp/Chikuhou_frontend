@@ -82,10 +82,6 @@ class MenuScreen extends HookConsumerWidget {
                 description: const Text(''),
               ),
               SettingsTile.navigation(
-                leading: const Icon(Icons.swap_horizontal_circle_outlined),
-                title: Text(AppLocalizations.of(context)!.swap),
-              ),
-              SettingsTile.navigation(
                 leading: const Icon(Icons.logout_rounded),
                 title: Text(
                   AppLocalizations.of(context)!.sign_out,
@@ -98,7 +94,8 @@ class MenuScreen extends HookConsumerWidget {
                   showDialogs(
                     context: context,
                     title: AppLocalizations.of(context)!.sign_out_confirmation,
-                    content: AppLocalizations.of(context)!.are_you_sure_sign_out,
+                    content:
+                        AppLocalizations.of(context)!.are_you_sure_sign_out,
                     cancelText: AppLocalizations.of(context)!.cancel,
                     confirmText: AppLocalizations.of(context)!.sign_out,
                     onConfirm: () {
