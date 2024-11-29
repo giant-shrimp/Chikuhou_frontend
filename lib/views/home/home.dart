@@ -44,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('複数ルート表示'),
+        title: const Text('アルケール'),
         automaticallyImplyLeading: false,
       ),
       body: Stack(
