@@ -166,6 +166,20 @@ class _HomeScreenState extends State<HomeScreen> {
                             });
 
                             try {
+                              // 最初に始点にカメラを移動
+                              if (_originController.text.isNotEmpty) {
+                                final originLocation = await routeViewModel
+                                    .fetchCoordinatesFromAddress(
+                                        _originController.text);
+                                _mapController?.animateCamera(
+                                  CameraUpdate.newLatLng(
+                                    LatLng(originLocation.latitude,
+                                        originLocation.longitude),
+                                  ),
+                                );
+                              }
+
+                              // ルートを取得
                               final multipleRoutes =
                                   await routeViewModel.fetchMultipleRoutes(
                                 _originController.text,
@@ -177,19 +191,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               final Set<Polyline> allPolylines = {};
                               LatLngBounds? bounds;
 
-                              final List<Color> colors = [
-                                Colors.red,
-                                Colors.green,
-                                Colors.blue,
-                                Colors.orange,
-                                Colors.purple,
-                                Colors.pink,
-                                Colors.teal,
-                                Colors.cyan,
-                                Colors.amber,
-                                Colors.lime,
-                              ];
-
+                              // ルートを描画
                               for (int i = 0; i < multipleRoutes.length; i++) {
                                 final route = multipleRoutes[i];
                                 final points = routeViewModel.decodePolyline(
@@ -204,39 +206,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                   Polyline(
                                     polylineId: PolylineId('route_$i'),
                                     points: points,
-                                    color: colors[i % colors.length],
+                                    color: Colors.blue, // 任意の色
                                     width: 3,
                                   ),
                                 );
-
-                                if (bounds == null) {
-                                  bounds = _calculateBounds(points);
-                                } else {
-                                  bounds = _expandBounds(bounds, points);
-                                }
 
                                 setState(() {
                                   _loadingRoutesCount = i + 1;
                                   _polylines = allPolylines;
                                 });
-
-                                print('--- Route $i ---');
-                                print(
-                                    'Distance: ${route['legs'][0]['distance']['text']}');
-                                print(
-                                    'Duration: ${route['legs'][0]['duration']['text']}');
-                                print(
-                                    'Polyline: ${route['overview_polyline']['points']}');
                               }
 
-                              if (bounds != null) {
-                                _mapController?.animateCamera(
-                                  CameraUpdate.newLatLngBounds(bounds, 50),
-                                );
-                              }
-
-                              await Future.delayed(const Duration(seconds: 2));
-
+                              // 勾配が最も緩いルートを特定
                               final gradientCalculator = GradientCalculator();
                               final leastGradientRoute =
                                   gradientCalculator.findLeastGradientRoute(
@@ -256,23 +237,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                     polylineId: const PolylineId(
                                         'least_gradient_route'),
                                     points: leastGradientPoints,
-                                    color: Colors.blue.withOpacity(0.7),
+                                    color: Colors.green.withOpacity(0.7),
                                     width: 5,
                                   ),
                                 };
                               });
 
-                              final routeBounds =
+                              // 勾配が緩いルートにカメラを移動
+                              final leastGradientBounds =
                                   _calculateBounds(leastGradientPoints);
                               _mapController?.animateCamera(
-                                CameraUpdate.newLatLngBounds(routeBounds, 50),
+                                CameraUpdate.newLatLngBounds(
+                                    leastGradientBounds, 50),
                               );
-
-                              print("最も勾配の緩いルートの詳細:");
-                              print(
-                                  "距離: ${leastGradientRoute['legs'][0]['distance']['text']}");
-                              print(
-                                  "所要時間: ${leastGradientRoute['legs'][0]['duration']['text']}");
                             } catch (error) {
                               print('ルート取得エラー: $error');
                             } finally {
