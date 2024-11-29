@@ -6,9 +6,16 @@ import 'config/providers/locale_provider.dart';
 import '../views/auth/sign_in.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'config/theme.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 Future<void> main() async {
   await dotenv.load(fileName: ".env");
+
+  WidgetsFlutterBinding.ensureInitialized();   //Firebase初期化処理　ここから
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,  //Firebase初期化処理　ここまで
+  );
 
   runApp(const MyApp());
 }

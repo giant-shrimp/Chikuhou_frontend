@@ -40,6 +40,10 @@ class SignUpViewModel extends ChangeNotifier {
       return false; // パスワード不一致
     }
     // AuthServiceを利用した仮のサインアップロジック
-    return await _authService.signIn(email: email, password: password);
+    return await _authService.signUp(
+      email: email,
+      password: password,
+      username: username,
+    );
   }
 }
