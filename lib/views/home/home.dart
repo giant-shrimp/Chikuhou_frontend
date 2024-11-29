@@ -85,16 +85,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-          Positioned(
-            top: 16,
-            right: 16,
-            child: IconButton(
-              icon: const Icon(Icons.assistant_navigation, size: 50),
-              onPressed: () {
-                _showRouteSearchModal(context);
-              },
-            ),
-          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
