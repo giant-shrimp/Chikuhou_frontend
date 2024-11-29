@@ -203,19 +203,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               final Set<Polyline> allPolylines = {};
                               LatLngBounds? bounds;
 
-                              final List<Color> colors = [
-                                Colors.red,
-                                Colors.blue,
-                                Colors.green,
-                                Colors.orange,
-                                Colors.purple,
-                                Colors.cyan,
-                                Colors.pink,
-                                Colors.teal,
-                                Colors.indigo,
-                                Colors.amber,
-                              ];
-
                               // ルートを描画
                               for (int i = 0; i < multipleRoutes.length; i++) {
                                 final route = multipleRoutes[i];
@@ -231,7 +218,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   Polyline(
                                     polylineId: PolylineId('route_$i'),
                                     points: points,
-                                    color: colors[i % colors.length], // 順番に色を設定
+                                    color: Colors.blue, // 任意の色
                                     width: 3,
                                   ),
                                 );
