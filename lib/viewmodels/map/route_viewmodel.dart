@@ -14,14 +14,19 @@ class RouteViewModel extends ChangeNotifier {
     String origin,
     String destination,
     String apiKey, {
-    int maxRoutes = 20, // 最大21ルートを取得
+    int maxRoutes = 20,
   }) async {
     final originalRoute = await _fetchOriginalRoute(origin, destination);
     final originalPolyline =
         decodePolyline(originalRoute['overview_polyline']['points']);
+
+    final double originalDistance = _calculateTotalDistance(originalPolyline);
+
+    // 許容距離範囲の設定 (±50%の範囲)
+    final double distanceToleranceMin = originalDistance * 0.5;
+
     List<Map<String, dynamic>> multipleRoutes = [originalRoute];
 
-    // 中間地点の割合
     List<double> fractions = [
       0.5,
       0.25,
@@ -40,20 +45,42 @@ class RouteViewModel extends ChangeNotifier {
       0.9375
     ];
 
-    while (multipleRoutes.length < 20) {
+    while (multipleRoutes.length < maxRoutes) {
       bool newRouteAdded = false;
 
       for (double fraction in fractions) {
-        final intermediatePoint =
-            _getIntermediatePoint(originalPolyline, fraction);
+        // 1. `fraction` 地点までの元ポリラインを取得
+        final intermediatePath =
+            _getIntermediatePath(originalPolyline, fraction);
+        final intermediatePoint = intermediatePath.last; // 中間地点を取得
+
+        // 2. `fraction` 地点から目的地までの代替ルートを取得
         final alternativeRoutes =
             await _fetchAlternativeRoutes(intermediatePoint, destination);
 
         for (final route in alternativeRoutes) {
-          if (!multipleRoutes.any((r) =>
-              r['overview_polyline']['points'] ==
-              route['overview_polyline']['points'])) {
-            multipleRoutes.add(route);
+          final alternativePolyline =
+              decodePolyline(route['overview_polyline']['points']);
+
+          // 3. 元ポリラインの始点から `fraction` まで + 代替ポリラインを結合
+          final combinedPolyline = [
+            ...intermediatePath,
+            ...alternativePolyline
+          ];
+
+          // 4. 距離範囲や重複チェック
+          final combinedDistance = _calculateTotalDistance(combinedPolyline);
+          if (combinedDistance >= distanceToleranceMin &&
+              !multipleRoutes.any((r) =>
+                  r['overview_polyline']['points'] ==
+                  route['overview_polyline']['points'])) {
+            // 5. 結合したポリラインを格納
+            multipleRoutes.add({
+              'overview_polyline': {
+                'points': _encodePolyline(combinedPolyline), // エンコード済みポリラインを格納
+              },
+              'legs': route['legs'], // 元のルート情報を利用
+            });
             newRouteAdded = true;
           }
         }
@@ -75,6 +102,7 @@ class RouteViewModel extends ChangeNotifier {
     String destination,
     String apiKey,
   ) async {
+    // 複数ルートを取得
     final multipleRoutes =
         await fetchMultipleRoutes(origin, destination, apiKey);
     final List<List<double>> elevationsList = [];
@@ -85,14 +113,20 @@ class RouteViewModel extends ChangeNotifier {
       elevationsList.add(elevations);
     }
 
+    // 勾配計算
     final gradientCalculator = GradientCalculator();
-    return gradientCalculator.findLeastGradientRoute(
-        multipleRoutes, elevationsList);
+    final leastGradientRoute = gradientCalculator.findLeastGradientRoute(
+      multipleRoutes,
+      elevationsList,
+    );
+
+    print("最も勾配が緩やかなルートを選択しました。");
+    return leastGradientRoute;
   }
 
   Future<List<double>> fetchElevationsForPolyline(
       List<LatLng> polylinePoints) async {
-    const double segmentDistance = 50.0; // 50m間隔
+    const double segmentDistance = 50.0;
     final List<LatLng> interpolatedPoints =
         _interpolatePolyline(polylinePoints, segmentDistance);
     final List<double> elevations = [];
@@ -162,8 +196,23 @@ class RouteViewModel extends ChangeNotifier {
     return interpolatedPoints;
   }
 
+  /// originalPolylineの最初からfractionまでの全ての座標を返す
+  List<LatLng> _getIntermediatePath(List<LatLng> points, double fraction) {
+    final int targetIndex =
+        (points.length * fraction).toInt().clamp(0, points.length - 1);
+    return points.sublist(0, targetIndex + 1);
+  }
+
+  double _calculateTotalDistance(List<LatLng> points) {
+    double totalDistance = 0.0;
+    for (int i = 0; i < points.length - 1; i++) {
+      totalDistance += _calculateDistance(points[i], points[i + 1]);
+    }
+    return totalDistance;
+  }
+
   double _calculateDistance(LatLng start, LatLng end) {
-    const double earthRadius = 6371000; // メートル
+    const double earthRadius = 6371000;
     final double dLat = _degreesToRadians(end.latitude - start.latitude);
     final double dLng = _degreesToRadians(end.longitude - start.longitude);
 
@@ -250,4 +299,39 @@ class RouteViewModel extends ChangeNotifier {
 
     return points;
   }
+}
+
+String _encodePolyline(List<LatLng> points) {
+  StringBuffer encoded = StringBuffer();
+  int lastLat = 0;
+  int lastLng = 0;
+
+  for (final point in points) {
+    int lat = (point.latitude * 1E5).round();
+    int lng = (point.longitude * 1E5).round();
+
+    int dLat = lat - lastLat;
+    int dLng = lng - lastLng;
+
+    encoded.write(_encodeValue(dLat));
+    encoded.write(_encodeValue(dLng));
+
+    lastLat = lat;
+    lastLng = lng;
+  }
+
+  return encoded.toString();
+}
+
+String _encodeValue(int value) {
+  value = value < 0 ? ~(value << 1) : (value << 1);
+  StringBuffer encoded = StringBuffer();
+
+  while (value >= 0x20) {
+    encoded.writeCharCode((0x20 | (value & 0x1f)) + 63);
+    value >>= 5;
+  }
+
+  encoded.writeCharCode(value + 63);
+  return encoded.toString();
 }

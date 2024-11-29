@@ -187,7 +187,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               final Set<Polyline> allPolylines = {};
                               LatLngBounds? bounds;
 
-                              // カラフルな色リスト
                               final List<Color> colors = [
                                 Colors.red,
                                 Colors.green,
