@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../../config/providers/status_provider.dart';
-import '../../../config/providers/sub_provider.dart';
-import '../../settings/settings_status.dart';
+import '../../config/providers/status_provider.dart';
+import '../../config/providers/sub_provider.dart';
+import 'settings_status.dart';
 
 // 選択されたアイテムの状態を管理するプロバイダー
 final selectedItemProvider = StateNotifierProvider<SelectedItemNotifier, Map<String, dynamic>>(
@@ -18,8 +18,8 @@ class SelectedItemNotifier extends StateNotifier<Map<String, dynamic>> {
   }
 }
 
-class DragDropScreen extends ConsumerWidget {
-  const DragDropScreen({super.key});
+class SettingsSub extends ConsumerWidget {
+  const SettingsSub({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

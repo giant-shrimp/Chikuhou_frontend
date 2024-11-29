@@ -13,7 +13,7 @@ import '../../../views/settings/settings_status.dart';
 import '../../../views/home/menu.dart';
 import '../../../views/home/home.dart';
 import '../../config/providers/status_provider.dart';
-import '../widgets/drag_drop/drag_drop.dart';
+import '../settings/settings_sub.dart';
 
 class MyStatefulWidget extends ConsumerStatefulWidget {
   const MyStatefulWidget({super.key});
