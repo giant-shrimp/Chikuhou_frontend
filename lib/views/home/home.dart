@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../viewmodels/map/route_viewmodel.dart';
 import '../../viewmodels/map/gradient_calculator.dart';
@@ -79,8 +80,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      '取得中のルート数: $_loadingRoutesCount',
-                      style: const TextStyle(fontSize: 16),
+                      '${AppLocalizations.of(context)!.number_of_routes_being_acquired}: $_loadingRoutesCount',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                   ],
                 ),
@@ -138,9 +142,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       children: [
-                        const Text(
-                          '複数ルート検索',
-                          style: TextStyle(
+                        Text(
+                          AppLocalizations.of(context)!.multiple_route_search,
+                          style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),
@@ -148,22 +152,22 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 16),
                         TextFormField(
                           controller: _originController,
-                          decoration: const InputDecoration(
-                            labelText: '出発地',
-                            suffixIcon: Icon(Icons.arrow_forward_ios),
+                          decoration: InputDecoration(
+                            labelText: AppLocalizations.of(context)!.departure_point,
+                            suffixIcon: const Icon(Icons.arrow_forward_ios),
                           ),
                         ),
                         const SizedBox(height: 8),
                         TextFormField(
                           controller: _destinationController,
-                          decoration: const InputDecoration(
-                            labelText: '目的地',
-                            suffixIcon: Icon(Icons.arrow_forward_ios),
+                          decoration: InputDecoration(
+                            labelText: AppLocalizations.of(context)!.destination,
+                            suffixIcon: const Icon(Icons.arrow_forward_ios),
                           ),
                         ),
                         const SizedBox(height: 26),
                         CustomButton(
-                          text: 'ルート検索',
+                          text: AppLocalizations.of(context)!.route_search,
                           onPressed: () async {
                             Navigator.pop(context); // モーダルを閉じる
                             setState(() {

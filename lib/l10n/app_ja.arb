@@ -47,6 +47,12 @@
   "sign_up": "新規登録",
   "sign_up_error": "パスワードが\n正しくありません。\n入力し直してください。",
 
+  "multiple_route_search": "複数ルート検索",
+  "route_search": "ルート検索",
+  "number_of_routes_being_acquired": "取得中のルート数",
+  "departure_point": "出発地",
+  "destination": "目的地",
+
   "walker": "ウォーカー",
   "runner": "ランナー",
   "senior": "シニア",
