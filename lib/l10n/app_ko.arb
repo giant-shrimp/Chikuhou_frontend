@@ -47,6 +47,12 @@
   "sign_up": "신규 등록",
   "sign_up_error": "비밀번호가 틀렸습니다.\n다시 시도해 주세요.",
 
+  "multiple_route_search": "다중 경로 검색",
+  "route_search": "경로 검색",
+  "number_of_routes_being_acquired": "획득 중인 경로 수",
+  "departure_point": "출발지",
+  "destination": "목적지",
+
   "walker": "보행자",
   "runner": "러너",
   "senior": "노인",
