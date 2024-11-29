@@ -4,7 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../config/providers/status_provider.dart';
 import '../../core/utils/dialog_helpers.dart';
-import '../widgets/drag_drop/drag_drop.dart';
+import '../settings/settings_sub.dart';
 import '../auth/sign_in.dart';
 import '../settings/settings.dart';
 import '../settings/settings_status.dart';
@@ -66,7 +66,7 @@ class MenuScreen extends HookConsumerWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const DragDropScreen(),
+                      builder: (context) => const SettingsSub(),
                     ),
                   );
                 },

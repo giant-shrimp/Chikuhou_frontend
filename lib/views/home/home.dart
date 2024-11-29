@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import '../../viewmodels/map/route_viewmodel.dart';
+import '../../viewmodels/map/gradient_calculator.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+void main() async {
+  await dotenv.load(fileName: ".env"); // dotenvファイルをロード
   runApp(const MyApp());
 }
 
@@ -36,6 +37,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Set<Polyline> _polylines = {};
   final TextEditingController _originController = TextEditingController();
   final TextEditingController _destinationController = TextEditingController();
+  bool _isLoading = false;
+  int _loadingRoutesCount = 0; // ローディング中のルート数を追跡
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           GoogleMap(
             initialCameraPosition: const CameraPosition(
-              target: LatLng(33.5902, 130.4017), // 初期表示位置（福岡市）
+              target: LatLng(33.5902, 130.4017), // 福岡市
               zoom: 14.0,
             ),
             myLocationEnabled: true,
@@ -57,16 +60,31 @@ class _HomeScreenState extends State<HomeScreen> {
             onMapCreated: (controller) => _mapController = controller,
             polylines: _polylines,
           ),
-          Positioned(
-            top: 16,
-            right: 16,
-            child: IconButton(
-              icon: const Icon(Icons.assistant_navigation, size: 50),
-              onPressed: () {
-                _showRouteSearchModal(context);
-              },
+          if (_isLoading)
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.8), // 半透明の白背景
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    LinearProgressIndicator(
+                      value: _loadingRoutesCount / 20, // 最大20ルートを基準
+                      backgroundColor: Colors.grey[200],
+                      color: Colors.deepPurple,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      '取得中のルート数: $_loadingRoutesCount',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -79,7 +97,16 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showRouteSearchModal(BuildContext context) {
+  void _setPolylines(Set<Polyline> polylines) {
+    setState(() {
+      _polylines = polylines;
+    });
+  }
+
+  Future<void> _showRouteSearchModal(BuildContext context) async {
+    String apiKey = dotenv.env['API_KEY']!;
+    final routeViewModel = RouteViewModel(apiKey: apiKey);
+
     showModalBottomSheet(
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
@@ -107,35 +134,154 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       children: [
                         const Text(
-                          '経路',
+                          '複数ルート検索',
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 16),
-                        TextField(
+                        TextFormField(
                           controller: _originController,
                           decoration: const InputDecoration(
-                            labelText: 'ここから',
+                            labelText: '出発地',
                             suffixIcon: Icon(Icons.arrow_forward_ios),
                           ),
                         ),
                         const SizedBox(height: 8),
-                        TextField(
+                        TextFormField(
                           controller: _destinationController,
                           decoration: const InputDecoration(
-                            labelText: 'ここまで',
+                            labelText: '目的地',
                             suffixIcon: Icon(Icons.arrow_forward_ios),
                           ),
                         ),
                         const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: () async {
-                            await _calculateRoute();
                             Navigator.pop(context); // モーダルを閉じる
+                            setState(() {
+                              _isLoading = true;
+                              _loadingRoutesCount = 0; // 初期化
+                            });
+
+                            try {
+                              final multipleRoutes =
+                                  await routeViewModel.fetchMultipleRoutes(
+                                _originController.text,
+                                _destinationController.text,
+                                apiKey,
+                              );
+
+                              final List<List<double>> elevationsList = [];
+                              final Set<Polyline> allPolylines = {};
+                              LatLngBounds? bounds;
+
+                              final List<Color> colors = [
+                                Colors.red,
+                                Colors.green,
+                                Colors.blue,
+                                Colors.orange,
+                                Colors.purple,
+                                Colors.pink,
+                                Colors.teal,
+                                Colors.cyan,
+                                Colors.amber,
+                                Colors.lime,
+                              ];
+
+                              for (int i = 0; i < multipleRoutes.length; i++) {
+                                final route = multipleRoutes[i];
+                                final points = routeViewModel.decodePolyline(
+                                    route['overview_polyline']['points']);
+
+                                final elevations = await routeViewModel
+                                    .fetchElevationsForPolyline(points);
+
+                                elevationsList.add(elevations);
+
+                                allPolylines.add(
+                                  Polyline(
+                                    polylineId: PolylineId('route_$i'),
+                                    points: points,
+                                    color: colors[i % colors.length],
+                                    width: 3,
+                                  ),
+                                );
+
+                                if (bounds == null) {
+                                  bounds = _calculateBounds(points);
+                                } else {
+                                  bounds = _expandBounds(bounds, points);
+                                }
+
+                                setState(() {
+                                  _loadingRoutesCount = i + 1;
+                                  _polylines = allPolylines;
+                                });
+
+                                print('--- Route $i ---');
+                                print(
+                                    'Distance: ${route['legs'][0]['distance']['text']}');
+                                print(
+                                    'Duration: ${route['legs'][0]['duration']['text']}');
+                                print(
+                                    'Polyline: ${route['overview_polyline']['points']}');
+                              }
+
+                              if (bounds != null) {
+                                _mapController?.animateCamera(
+                                  CameraUpdate.newLatLngBounds(bounds, 50),
+                                );
+                              }
+
+                              await Future.delayed(const Duration(seconds: 2));
+
+                              final gradientCalculator = GradientCalculator();
+                              final leastGradientRoute =
+                                  gradientCalculator.findLeastGradientRoute(
+                                multipleRoutes,
+                                elevationsList,
+                              );
+
+                              final leastGradientPoints =
+                                  routeViewModel.decodePolyline(
+                                leastGradientRoute['overview_polyline']
+                                    ['points'],
+                              );
+
+                              setState(() {
+                                _polylines = {
+                                  Polyline(
+                                    polylineId: const PolylineId(
+                                        'least_gradient_route'),
+                                    points: leastGradientPoints,
+                                    color: Colors.blue.withOpacity(0.7),
+                                    width: 5,
+                                  ),
+                                };
+                              });
+
+                              final routeBounds =
+                                  _calculateBounds(leastGradientPoints);
+                              _mapController?.animateCamera(
+                                CameraUpdate.newLatLngBounds(routeBounds, 50),
+                              );
+
+                              print("最も勾配の緩いルートの詳細:");
+                              print(
+                                  "距離: ${leastGradientRoute['legs'][0]['distance']['text']}");
+                              print(
+                                  "所要時間: ${leastGradientRoute['legs'][0]['duration']['text']}");
+                            } catch (error) {
+                              print('ルート取得エラー: $error');
+                            } finally {
+                              setState(() {
+                                _isLoading = false;
+                              });
+                            }
                           },
-                          child: const Text('経路を計算'),
+                          child: const Text('ルート検索'),
                         ),
                       ],
                     ),
@@ -149,126 +295,41 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _calculateRoute() async {
-    try {
-      final routeData = await _fetchRouteFromAPI(
-        _originController.text,
-        _destinationController.text,
-      );
+  LatLngBounds _calculateBounds(List<LatLng> points) {
+    double? minLat, maxLat, minLng, maxLng;
 
-      if (routeData != null) {
-        final List<LatLng> points = _decodePolyline(
-          routeData['routes'][0]['overview_polyline']['points'],
-        );
-        setState(() {
-          _polylines = {
-            Polyline(
-              polylineId: const PolylineId('route'),
-              points: points,
-              color: Colors.blue,
-              width: 5,
-            ),
-          };
-        });
-
-        if (_mapController != null && points.isNotEmpty) {
-          LatLngBounds bounds = _getLatLngBounds(points);
-          _mapController!
-              .animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
-        }
-      } else {
-        _showSnackBar('経路を取得できませんでした');
-      }
-    } catch (error) {
-      _showSnackBar('エラーが発生しました: $error');
-    }
-  }
-
-  Future<Map<String, dynamic>?> _fetchRouteFromAPI(
-      String origin, String destination) async {
-    final String apiKey = dotenv.env['API_KEY'] ?? ''; // .envからAPIキーを取得
-
-    if (apiKey.isEmpty) {
-      print('APIキーが見つかりません');
-      return null;
-    }
-
-    final encodedOrigin = Uri.encodeComponent(origin);
-    final encodedDestination = Uri.encodeComponent(destination);
-    final url =
-        'https://maps.googleapis.com/maps/api/directions/json?origin=$encodedOrigin&destination=$encodedDestination&key=$apiKey';
-
-    print('Request URL: $url'); // デバッグ用
-
-    final response = await http.get(Uri.parse(url));
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['routes'] != null && data['routes'].isNotEmpty) {
-        return data;
-      } else {
-        print(
-            'API Response Error: ${data['status']} - ${data['error_message']}');
-        return null;
-      }
-    } else {
-      print('HTTP Error: ${response.statusCode}');
-      return null;
-    }
-  }
-
-  List<LatLng> _decodePolyline(String encoded) {
-    List<LatLng> points = [];
-    int index = 0, len = encoded.length;
-    int lat = 0, lng = 0;
-
-    while (index < len) {
-      int b, shift = 0, result = 0;
-      do {
-        b = encoded.codeUnitAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-      int dlat = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
-      lat += dlat;
-
-      shift = 0;
-      result = 0;
-      do {
-        b = encoded.codeUnitAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-      int dlng = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
-      lng += dlng;
-
-      points.add(LatLng(lat / 1E5, lng / 1E5));
-    }
-
-    return points;
-  }
-
-  LatLngBounds _getLatLngBounds(List<LatLng> points) {
-    double minLat = points.first.latitude;
-    double maxLat = points.first.latitude;
-    double minLng = points.first.longitude;
-    double maxLng = points.first.longitude;
-
-    for (LatLng point in points) {
-      if (point.latitude < minLat) minLat = point.latitude;
-      if (point.latitude > maxLat) maxLat = point.latitude;
-      if (point.longitude < minLng) minLng = point.longitude;
-      if (point.longitude > maxLng) maxLng = point.longitude;
+    for (final point in points) {
+      if (minLat == null || point.latitude < minLat) minLat = point.latitude;
+      if (maxLat == null || point.latitude > maxLat) maxLat = point.latitude;
+      if (minLng == null || point.longitude < minLng) minLng = point.longitude;
+      if (maxLng == null || point.longitude > maxLng) maxLng = point.longitude;
     }
 
     return LatLngBounds(
-      southwest: LatLng(minLat, minLng),
-      northeast: LatLng(maxLat, maxLng),
+      southwest: LatLng(minLat!, minLng!),
+      northeast: LatLng(maxLat!, maxLng!),
     );
   }
 
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+  LatLngBounds _expandBounds(LatLngBounds bounds, List<LatLng> points) {
+    final additionalBounds = _calculateBounds(points);
+    return LatLngBounds(
+      southwest: LatLng(
+        bounds.southwest.latitude < additionalBounds.southwest.latitude
+            ? bounds.southwest.latitude
+            : additionalBounds.southwest.latitude,
+        bounds.southwest.longitude < additionalBounds.southwest.longitude
+            ? bounds.southwest.longitude
+            : additionalBounds.southwest.longitude,
+      ),
+      northeast: LatLng(
+        bounds.northeast.latitude > additionalBounds.northeast.latitude
+            ? bounds.northeast.latitude
+            : additionalBounds.northeast.latitude,
+        bounds.northeast.longitude > additionalBounds.northeast.longitude
+            ? bounds.northeast.longitude
+            : additionalBounds.northeast.longitude,
+      ),
+    );
   }
 }
