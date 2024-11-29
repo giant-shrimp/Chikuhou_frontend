@@ -3,6 +3,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../viewmodels/map/route_viewmodel.dart';
 import '../../viewmodels/map/gradient_calculator.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../widgets/common/custom_button.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env"); // dotenvファイルをロード
@@ -161,7 +162,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         const SizedBox(height: 26),
-                        ElevatedButton(
+                        CustomButton(
+                          text: 'ルート検索',
                           onPressed: () async {
                             Navigator.pop(context); // モーダルを閉じる
                             setState(() {
@@ -173,19 +175,16 @@ class _HomeScreenState extends State<HomeScreen> {
                               // 最初に始点にカメラを移動
                               if (_originController.text.isNotEmpty) {
                                 final originLocation = await routeViewModel
-                                    .fetchCoordinatesFromAddress(
-                                        _originController.text);
+                                    .fetchCoordinatesFromAddress(_originController.text);
                                 _mapController?.animateCamera(
                                   CameraUpdate.newLatLng(
-                                    LatLng(originLocation.latitude,
-                                        originLocation.longitude),
+                                    LatLng(originLocation.latitude, originLocation.longitude),
                                   ),
                                 );
                               }
 
                               // ルートを取得
-                              final multipleRoutes =
-                                  await routeViewModel.fetchMultipleRoutes(
+                              final multipleRoutes = await routeViewModel.fetchMultipleRoutes(
                                 _originController.text,
                                 _destinationController.text,
                                 apiKey,
@@ -198,11 +197,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               // ルートを描画
                               for (int i = 0; i < multipleRoutes.length; i++) {
                                 final route = multipleRoutes[i];
-                                final points = routeViewModel.decodePolyline(
-                                    route['overview_polyline']['points']);
+                                final points =
+                                routeViewModel.decodePolyline(route['overview_polyline']['points']);
 
-                                final elevations = await routeViewModel
-                                    .fetchElevationsForPolyline(points);
+                                final elevations =
+                                await routeViewModel.fetchElevationsForPolyline(points);
 
                                 elevationsList.add(elevations);
 
@@ -224,22 +223,16 @@ class _HomeScreenState extends State<HomeScreen> {
                               // 勾配が最も緩いルートを特定
                               final gradientCalculator = GradientCalculator();
                               final leastGradientRoute =
-                                  gradientCalculator.findLeastGradientRoute(
-                                multipleRoutes,
-                                elevationsList,
-                              );
+                              gradientCalculator.findLeastGradientRoute(multipleRoutes, elevationsList);
 
-                              final leastGradientPoints =
-                                  routeViewModel.decodePolyline(
-                                leastGradientRoute['overview_polyline']
-                                    ['points'],
+                              final leastGradientPoints = routeViewModel.decodePolyline(
+                                leastGradientRoute['overview_polyline']['points'],
                               );
 
                               setState(() {
                                 _polylines = {
                                   Polyline(
-                                    polylineId: const PolylineId(
-                                        'least_gradient_route'),
+                                    polylineId: const PolylineId('least_gradient_route'),
                                     points: leastGradientPoints,
                                     color: Colors.green.withOpacity(0.7),
                                     width: 12,
@@ -248,11 +241,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               });
 
                               // 勾配が緩いルートにカメラを移動
-                              final leastGradientBounds =
-                                  _calculateBounds(leastGradientPoints);
+                              final leastGradientBounds = _calculateBounds(leastGradientPoints);
                               _mapController?.animateCamera(
-                                CameraUpdate.newLatLngBounds(
-                                    leastGradientBounds, 50),
+                                CameraUpdate.newLatLngBounds(leastGradientBounds, 50),
                               );
                             } catch (error) {
                               print('ルート取得エラー: $error');
@@ -262,7 +253,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               });
                             }
                           },
-                          child: const Text('ルート検索'),
                         ),
                       ],
                     ),
