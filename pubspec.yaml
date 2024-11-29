@@ -25,7 +25,7 @@ dependencies:
   firebase_core: ^3.8.0
   cloud_firestore: ^5.5.0  # 最新バージョンを確認して置き換えてください
   firebase_auth: ^5.3.3   # 最新バージョンを確認して置き換えてください
-  flutter_spinkit: ^5.2.1
+ # flutter_spinkit: ^5.2.1
 
 dev_dependencies:
   flutter_test:
