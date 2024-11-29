@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../viewmodels/map/route_viewmodel.dart';
 import '../../viewmodels/map/gradient_calculator.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../widgets/common/custom_button.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env"); // dotenvファイルをロード
@@ -78,8 +80,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      '取得中のルート数: $_loadingRoutesCount',
-                      style: const TextStyle(fontSize: 16),
+                      '${AppLocalizations.of(context)!.number_of_routes_being_acquired}: $_loadingRoutesCount',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                   ],
                 ),
@@ -87,11 +92,15 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showRouteSearchModal(context);
-        },
-        child: const Icon(Icons.south),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 15.0), // 下からの余白を調整
+        child: FloatingActionButton(
+          onPressed: () {
+            _showRouteSearchModal(context);
+          },
+          backgroundColor: Colors.white.withOpacity(0.8),
+          child: const Icon(Icons.south),
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
     );
@@ -133,9 +142,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       children: [
-                        const Text(
-                          '複数ルート検索',
-                          style: TextStyle(
+                        Text(
+                          AppLocalizations.of(context)!.multiple_route_search,
+                          style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),
@@ -143,21 +152,24 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 16),
                         TextFormField(
                           controller: _originController,
-                          decoration: const InputDecoration(
-                            labelText: '出発地',
-                            suffixIcon: Icon(Icons.arrow_forward_ios),
+                          decoration: InputDecoration(
+                            labelText:
+                                AppLocalizations.of(context)!.departure_point,
+                            suffixIcon: const Icon(Icons.arrow_forward_ios),
                           ),
                         ),
                         const SizedBox(height: 8),
                         TextFormField(
                           controller: _destinationController,
-                          decoration: const InputDecoration(
-                            labelText: '目的地',
-                            suffixIcon: Icon(Icons.arrow_forward_ios),
+                          decoration: InputDecoration(
+                            labelText:
+                                AppLocalizations.of(context)!.destination,
+                            suffixIcon: const Icon(Icons.arrow_forward_ios),
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
+                        const SizedBox(height: 26),
+                        CustomButton(
+                          text: AppLocalizations.of(context)!.route_search,
                           onPressed: () async {
                             Navigator.pop(context); // モーダルを閉じる
                             setState(() {
@@ -221,9 +233,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               final gradientCalculator = GradientCalculator();
                               final leastGradientRoute =
                                   gradientCalculator.findLeastGradientRoute(
-                                multipleRoutes,
-                                elevationsList,
-                              );
+                                      multipleRoutes, elevationsList);
 
                               final leastGradientPoints =
                                   routeViewModel.decodePolyline(
@@ -238,7 +248,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         'least_gradient_route'),
                                     points: leastGradientPoints,
                                     color: Colors.green.withOpacity(0.7),
-                                    width: 5,
+                                    width: 12,
                                   ),
                                 };
                               });
@@ -258,7 +268,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               });
                             }
                           },
-                          child: const Text('ルート検索'),
                         ),
                       ],
                     ),

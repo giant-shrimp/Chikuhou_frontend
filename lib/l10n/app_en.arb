@@ -47,6 +47,12 @@
   "sign_up": "Sign up",
   "sign_up_error": "The password is incorrect. Please try again.",
 
+  "multiple_route_search": "Multiple route search",
+  "route_search": "Route search",
+  "number_of_routes_being_acquired": "Number of routes being acquired",
+  "departure_point": "Departure point",
+  "destination": "Destination",
+
   "walker": "Walker",
   "runner": "Runner",
   "senior": "Senior",

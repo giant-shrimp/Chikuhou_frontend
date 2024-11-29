@@ -15,11 +15,17 @@ class CustomButton extends StatelessWidget {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.white, // 背景色
-        foregroundColor: Colors.black, // テキスト色
+        backgroundColor: const Color(0xFF228B22), // 背景色
+        foregroundColor: Colors.white, // テキスト色
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 50),
       ),
-      child: Text(text),
+      child: Text(
+          text,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+      ),
     );
   }
 }
