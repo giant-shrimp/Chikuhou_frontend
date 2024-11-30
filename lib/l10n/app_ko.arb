@@ -53,6 +53,13 @@
   "departure_point": "출발지",
   "destination": "목적지",
 
+  "simple_gradient_calculation": "간단한 그래디언트 계산",
+  "quadrature_by_pieces": "구분 구적법",
+  "linear_calculations": "선형 계산",
+  "vector_product": "벡터 제품",
+  "taylor_expansion": "테일러 배포",
+  "simpson_act": "심슨법",
+
   "walker": "보행자",
   "runner": "러너",
   "senior": "노인",

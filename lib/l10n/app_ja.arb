@@ -53,6 +53,13 @@
   "departure_point": "出発地",
   "destination": "目的地",
 
+  "simple_gradient_calculation": "単純勾配計算",
+  "quadrature_by_pieces": "区分求積法",
+  "linear_calculations": "線形計算",
+  "vector_product": "ベクトル積",
+  "taylor_expansion": "テイラー展開",
+  "simpson_act": "シンプソン法",
+
   "walker": "ウォーカー",
   "runner": "ランナー",
   "senior": "シニア",
