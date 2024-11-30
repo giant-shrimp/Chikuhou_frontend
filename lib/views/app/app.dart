@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../widgets/screen/sub_extension/audio_guidance.dart';
-import '../widgets/screen/sub_extension/calorie_count.dart';
-import '../widgets/screen/sub_extension/marathon_course.dart';
-import '../widgets/screen/sub_extension/rain_cloud_radar.dart';
-import '../widgets/screen/sub_extension/reviews.dart';
-import '../widgets/screen/sub_extension/securing_evacuation_routes.dart';
-import '../widgets/screen/sub_extension/simple_translation.dart';
-import '../widgets/screen/gradient_calculation.dart';
+import '../home/sub_extension/audio_guidance.dart';
+import '../home/sub_extension/calorie_count.dart';
+import '../home/sub_extension/marathon_course.dart';
+import '../home/sub_extension/rain_cloud_radar.dart';
+import '../home/sub_extension/reviews.dart';
+import '../home/sub_extension/securing_evacuation_routes.dart';
+import '../home/sub_extension/simple_translation.dart';
+import '../settings/settings_calculation_method.dart';
 import '../../../views/settings/settings_status.dart';
 import '../../../views/home/menu.dart';
 import '../../../views/home/home.dart';
@@ -76,7 +76,7 @@ class _MyStatefulWidgetState extends ConsumerState<MyStatefulWidget> {
       const MenuScreen(),
       subScreen, // 選択されたサブ機能の画面
       const HomeScreen(),
-      const GradientCalculationScreen(),
+      const SettingsCalculationMethod(),
       const SettingsStatus(),
     ];
 

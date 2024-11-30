@@ -53,6 +53,13 @@
   "departure_point": "Departure point",
   "destination": "Destination",
 
+  "simple_gradient_calculation": "Simple gradient calculation",
+  "quadrature_by_pieces": "Quadrature by Pieces",
+  "linear_calculations": "Linear Calculations",
+  "vector_product": "Vector product",
+  "taylor_expansion": "Taylor expansion",
+  "simpson_act": "Simpson Act",
+
   "walker": "Walker",
   "runner": "Runner",
   "senior": "Senior",
