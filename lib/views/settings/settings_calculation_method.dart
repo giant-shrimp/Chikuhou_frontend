@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../widgets/common/custom_calculation_modal.dart';
 
 // 現在のステータスを管理するためのProvider
 final methodProvider = StateProvider<String>((ref) => 'method_1'); //初期値:単純勾配計算
@@ -32,7 +33,17 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                     ? const Icon(Icons.done, color: Colors.blue) // method_1選択時にチェックマーク
                     : null,
                 onPressed: (context) {
-                  ref.read(methodProvider.notifier).state = 'method_1';  // method_1に変更
+                  showCustomModal(
+                    context,
+                    ref,
+                    title: AppLocalizations.of(context)!.simple_gradient_calculation,
+                    icon: Icons.looks_one_outlined,
+                    formulaDescription: 'これは数式の説明です。',
+                    compatibleTypes: 'ここに相性の良いタイプを記載してください。',
+                    advantages: 'ここにメリットを記載してください。',
+                    disadvantages: 'ここにデメリットを記載してください。',
+                    methodKey: 'method_1',
+                  );// カスタムモーダル表示
                 },
               ),
               SettingsTile(
@@ -43,7 +54,17 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                     ? const Icon(Icons.done, color: Colors.blue) // method_2選択時にチェックマーク
                     : null,
                 onPressed: (context) {
-                  ref.read(methodProvider.notifier).state = 'method_2';  // method_2に変更
+                  showCustomModal(
+                    context,
+                    ref,
+                    title: AppLocalizations.of(context)!.quadrature_by_pieces,
+                    icon: Icons.looks_two_outlined,
+                    formulaDescription: 'これは数式の説明です。',
+                    compatibleTypes: 'ここに相性の良いタイプを記載してください。',
+                    advantages: 'ここにメリットを記載してください。',
+                    disadvantages: 'ここにデメリットを記載してください。',
+                    methodKey: 'method_2',
+                  );// カスタムモーダル表示
                 },
               ),
               SettingsTile(
@@ -54,7 +75,17 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                     ? const Icon(Icons.done, color: Colors.blue) // method_3選択時にチェックマーク
                     : null,
                 onPressed: (context) {
-                  ref.read(methodProvider.notifier).state = 'method_3';  // method_3に変更
+                  showCustomModal(
+                    context,
+                    ref,
+                    title: AppLocalizations.of(context)!.linear_calculations,
+                    icon: Icons.looks_3_outlined,
+                    formulaDescription: 'これは数式の説明です。',
+                    compatibleTypes: 'ここに相性の良いタイプを記載してください。',
+                    advantages: 'ここにメリットを記載してください。',
+                    disadvantages: 'ここにデメリットを記載してください。',
+                    methodKey: 'method_3',
+                  );// カスタムモーダル表示
                 },
               ),
               SettingsTile(
@@ -65,7 +96,17 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                     ? const Icon(Icons.done, color: Colors.blue) // method_4選択時にチェックマーク
                     : null,
                 onPressed: (context) {
-                  ref.read(methodProvider.notifier).state = 'method_4';  // method_4に変更
+                  showCustomModal(
+                    context,
+                    ref,
+                    title: AppLocalizations.of(context)!.vector_product,
+                    icon: Icons.looks_4_outlined,
+                    formulaDescription: 'これは数式の説明です。',
+                    compatibleTypes: 'ここに相性の良いタイプを記載してください。',
+                    advantages: 'ここにメリットを記載してください。',
+                    disadvantages: 'ここにデメリットを記載してください。',
+                    methodKey: 'method_4',
+                  );// カスタムモーダル表示
                 },
               ),
               SettingsTile(
@@ -76,7 +117,17 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                     ? const Icon(Icons.done, color: Colors.blue) // method_5選択時にチェックマーク
                     : null,
                 onPressed: (context) {
-                  ref.read(methodProvider.notifier).state = 'method_5';  // method_5に変更
+                  showCustomModal(
+                    context,
+                    ref,
+                    title: AppLocalizations.of(context)!.taylor_expansion,
+                    icon: Icons.looks_5_outlined,
+                    formulaDescription: 'これは数式の説明です。',
+                    compatibleTypes: 'ここに相性の良いタイプを記載してください。',
+                    advantages: 'ここにメリットを記載してください。',
+                    disadvantages: 'ここにデメリットを記載してください。',
+                    methodKey: 'method_5',
+                  );// カスタムモーダル表示
                 },
               ),
               SettingsTile(
@@ -87,7 +138,17 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                     ? const Icon(Icons.done, color: Colors.blue) // method_6選択時にチェックマーク
                     : null,
                 onPressed: (context) {
-                  ref.read(methodProvider.notifier).state = 'method_6';  // method_6に変更
+                  showCustomModal(
+                    context,
+                    ref,
+                    title: AppLocalizations.of(context)!.simpson_act,
+                    icon: Icons.looks_6_outlined,
+                    formulaDescription: 'これは数式の説明です。',
+                    compatibleTypes: 'ここに相性の良いタイプを記載してください。',
+                    advantages: 'ここにメリットを記載してください。',
+                    disadvantages: 'ここにデメリットを記載してください。',
+                    methodKey: 'method_6',
+                  );// カスタムモーダル表示
                 },
               ),
             ],
