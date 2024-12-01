@@ -9,7 +9,7 @@ class CustomModal extends StatelessWidget {
   final IconData headerIcon;
   final String formulaDescription; // 数式の説明
   final String overview; //概要の説明
-  final String compatibleTypes; // 相性の良いタイプの説明
+  final List<Map<String, dynamic>> compatibleTypes; // 相性の良いタイプの説明 (アイコンと文字のリスト)
   final String advantages; // メリットの説明
   final String disadvantages; // デメリットの説明
   final String methodKey; // どの計算方法が選ばれたかを渡す
@@ -38,7 +38,7 @@ class CustomModal extends StatelessWidget {
         body: Row(
           children: [
             Expanded(
-              flex: 1, // 画面左側1/4を空白に
+              flex: 1, // 画面左側1/5を空白に
               child: GestureDetector(
                 onTap: () {
                   Navigator.of(context).pop(); // 左側空白部分タップで閉じる
@@ -47,7 +47,7 @@ class CustomModal extends StatelessWidget {
               ),
             ),
             Expanded(
-              flex: 3, // 画面右側3/4にモーダル
+              flex: 4, // 画面右側4/5にモーダル
               child: Container(
                 color: Colors.white,
                 child: Column(
@@ -62,7 +62,7 @@ class CustomModal extends StatelessWidget {
                     ),
                     // モーダルの本文
                     Expanded(
-                      child: Padding(
+                      child: SingleChildScrollView(
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,7 +89,18 @@ class CustomModal extends StatelessWidget {
                                   fontSize: 18, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 8),
-                            Text(compatibleTypes),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: compatibleTypes.map((type) {
+                                return Row(
+                                  children: [
+                                    Icon(type['icon'], color: Colors.green),
+                                    const SizedBox(width: 8),
+                                    Text(type['label']),
+                                  ],
+                                );
+                              }).toList(),
+                            ),
                             const SizedBox(height: 16),
                             const Text(
                               'メリット',
@@ -142,7 +153,7 @@ void showCustomModal(BuildContext context, WidgetRef ref,
       required IconData icon,
       required String formulaDescription,
       required String overview,
-      required String compatibleTypes,
+      required List<Map<String, dynamic>> compatibleTypes,
       required String advantages,
       required String disadvantages,
       required String methodKey}) {
