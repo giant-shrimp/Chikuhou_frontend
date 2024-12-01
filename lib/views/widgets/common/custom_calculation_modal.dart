@@ -8,6 +8,7 @@ class CustomModal extends StatelessWidget {
   final String title;
   final IconData headerIcon;
   final String formulaDescription; // 数式の説明
+  final String overview; //概要の説明
   final String compatibleTypes; // 相性の良いタイプの説明
   final String advantages; // メリットの説明
   final String disadvantages; // デメリットの説明
@@ -19,6 +20,7 @@ class CustomModal extends StatelessWidget {
     required this.title,
     required this.headerIcon,
     required this.formulaDescription,
+    required this.overview,
     required this.compatibleTypes,
     required this.advantages,
     required this.disadvantages,
@@ -72,6 +74,14 @@ class CustomModal extends StatelessWidget {
                             ),
                             const SizedBox(height: 8),
                             Text(formulaDescription),
+                            const SizedBox(height: 16),
+                            const Text(
+                              '概要',
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(overview),
                             const SizedBox(height: 16),
                             const Text(
                               '相性の良いタイプ',
@@ -131,6 +141,7 @@ void showCustomModal(BuildContext context, WidgetRef ref,
     {required String title,
       required IconData icon,
       required String formulaDescription,
+      required String overview,
       required String compatibleTypes,
       required String advantages,
       required String disadvantages,
@@ -144,6 +155,7 @@ void showCustomModal(BuildContext context, WidgetRef ref,
       title: title,
       headerIcon: icon,
       formulaDescription: formulaDescription,
+      overview: overview,
       compatibleTypes: compatibleTypes,
       advantages: advantages,
       disadvantages: disadvantages,
