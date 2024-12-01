@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../settings/settings_calculation_method.dart';
 import 'custom_button.dart';
 
@@ -108,10 +109,10 @@ class CustomModal extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildSection('数式', _buildFormulaSection()),
-                            _buildSection('概要', Text(overview)),
+                            _buildSection(AppLocalizations.of(context)!.formula, _buildFormulaSection()),
+                            _buildSection(AppLocalizations.of(context)!.overview, Text(overview)),
                             _buildSection(
-                              '相性の良いタイプ',
+                              AppLocalizations.of(context)!.compatible_types,
                               Column(
                                 children: compatibleTypes.map((type) {
                                   return Row(
@@ -124,8 +125,8 @@ class CustomModal extends StatelessWidget {
                                 }).toList(),
                               ),
                             ),
-                            _buildSection('メリット', Text(advantages)),
-                            _buildSection('デメリット', Text(disadvantages)),
+                            _buildSection(AppLocalizations.of(context)!.advantages, Text(advantages)),
+                            _buildSection(AppLocalizations.of(context)!.disadvantages, Text(disadvantages)),
                           ],
                         ),
                       ),
@@ -135,7 +136,7 @@ class CustomModal extends StatelessWidget {
                       child: SizedBox(
                         width: double.infinity,
                         child: CustomButton(
-                          text: '決定',
+                          text: AppLocalizations.of(context)!.confirm,
                           onPressed: () {
                             ref.read(methodProvider.notifier).state = methodKey;
                             Navigator.of(context).pop();

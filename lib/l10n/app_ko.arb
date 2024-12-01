@@ -59,6 +59,16 @@
   "vector_product": "벡터 제품",
   "taylor_expansion": "테일러 배포",
   "simpson_act": "심슨법",
+  "fourier_transform": "푸리에 변환",
+  "helmholtz_decomposition": "헬름홀츠 분해",
+  "riemannian_metric": "리만 계량",
+
+  "formula": "수식",
+  "overview": "개요",
+  "compatible_types": "궁합이 좋은 타입",
+  "advantages": "이점",
+  "disadvantages": "불리",
+  "confirm": "결정",
 
   "walker": "보행자",
   "runner": "러너",

@@ -219,7 +219,7 @@ class SettingsCalculationMethod extends HookConsumerWidget {
               ),
               SettingsTile(
                 leading: const Icon(Icons.filter_7),
-                title: const Text('フーリエ変換'),
+                title: Text(AppLocalizations.of(context)!.fourier_transform),
                 description: const Text(''),
                 trailing: currentMethod == 'method_7'
                     ? const Icon(Icons.done, color: Colors.blue) // method_7選択時にチェックマーク
@@ -228,7 +228,7 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                   showCustomModal(
                     context,
                     ref,
-                    title: 'フーリエ変換',
+                    title: AppLocalizations.of(context)!.fourier_transform,
                     icon: Icons.filter_7,
                     formulas: [
                       {'formula': r'\text{地形データをフーリエ変換して急激な勾配の周波数成分を抽出：}' },
@@ -249,7 +249,7 @@ class SettingsCalculationMethod extends HookConsumerWidget {
               ),
               SettingsTile(
                 leading: const Icon(Icons.filter_8),
-                title: const Text('ヘルムホルツ分解'),
+                title: Text(AppLocalizations.of(context)!.helmholtz_decomposition),
                 description: const Text(''),
                 trailing: currentMethod == 'method_8'
                     ? const Icon(Icons.done, color: Colors.blue) // method_8選択時にチェックマーク
@@ -258,7 +258,7 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                   showCustomModal(
                     context,
                     ref,
-                    title: 'ヘルムホルツ分解',
+                    title: AppLocalizations.of(context)!.helmholtz_decomposition,
                     icon: Icons.filter_8,
                     formulas: [
                       {'formula': r'\mathbf{F} = \nabla \phi + \nabla \times \mathbf{A}' },
@@ -279,7 +279,7 @@ class SettingsCalculationMethod extends HookConsumerWidget {
               ),
               SettingsTile(
                 leading: const Icon(Icons.filter_9),
-                title: const Text('リーマン計量'),
+                title: Text(AppLocalizations.of(context)!.riemannian_metric),
                 description: const Text(''),
                 trailing: currentMethod == 'method_9'
                     ? const Icon(Icons.done, color: Colors.blue) // method_9選択時にチェックマーク
@@ -288,7 +288,7 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                   showCustomModal(
                     context,
                     ref,
-                    title: 'リーマン計量',
+                    title: AppLocalizations.of(context)!.riemannian_metric,
                     icon: Icons.filter_9,
                     formulas: [
                       {'formula': r'ds^2 = \sum_{i,j} g_{ij}(x) \, dx^i dx^j' },
