@@ -26,7 +26,7 @@ class SettingsCalculationMethod extends HookConsumerWidget {
             title: const Text(''),
             tiles: <SettingsTile>[
               SettingsTile(
-                leading: const Icon(Icons.looks_one_outlined),
+                leading: const Icon(Icons.filter_1),
                 title: Text(AppLocalizations.of(context)!.simple_gradient_calculation),
                 description: const Text(''),
                 trailing: currentMethod == 'method_1'
@@ -37,7 +37,7 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                     context,
                     ref,
                     title: AppLocalizations.of(context)!.simple_gradient_calculation,
-                    icon: Icons.looks_one_outlined,
+                    icon: Icons.filter_1,
                     formulaDescription: 'これは数式の説明です。',
                     overview: '概要の説明',
                     compatibleTypes: 'ここに相性の良いタイプを記載してください。',
@@ -48,7 +48,7 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                 },
               ),
               SettingsTile(
-                leading: const Icon(Icons.looks_two_outlined),
+                leading: const Icon(Icons.filter_2),
                 title: Text(AppLocalizations.of(context)!.quadrature_by_pieces),
                 description: const Text(''),
                 trailing: currentMethod == 'method_2'
@@ -59,7 +59,7 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                     context,
                     ref,
                     title: AppLocalizations.of(context)!.quadrature_by_pieces,
-                    icon: Icons.looks_two_outlined,
+                    icon: Icons.filter_2,
                     formulaDescription: 'これは数式の説明です。',
                     overview: '概要の説明',
                     compatibleTypes: 'ここに相性の良いタイプを記載してください。',
@@ -70,7 +70,7 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                 },
               ),
               SettingsTile(
-                leading: const Icon(Icons.looks_3_outlined),
+                leading: const Icon(Icons.filter_3),
                 title: Text(AppLocalizations.of(context)!.linear_calculations),
                 description: const Text(''),
                 trailing: currentMethod == 'method_3'
@@ -81,7 +81,7 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                     context,
                     ref,
                     title: AppLocalizations.of(context)!.linear_calculations,
-                    icon: Icons.looks_3_outlined,
+                    icon: Icons.filter_3,
                     formulaDescription: 'これは数式の説明です。',
                     overview: '概要の説明',
                     compatibleTypes: 'ここに相性の良いタイプを記載してください。',
@@ -92,7 +92,7 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                 },
               ),
               SettingsTile(
-                leading: const Icon(Icons.looks_4_outlined),
+                leading: const Icon(Icons.filter_4),
                 title: Text(AppLocalizations.of(context)!.vector_product),
                 description: const Text(''),
                 trailing: currentMethod == 'method_4'
@@ -103,7 +103,7 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                     context,
                     ref,
                     title: AppLocalizations.of(context)!.vector_product,
-                    icon: Icons.looks_4_outlined,
+                    icon: Icons.filter_4,
                     formulaDescription: 'これは数式の説明です。',
                     overview: '概要の説明',
                     compatibleTypes: 'ここに相性の良いタイプを記載してください。',
@@ -114,7 +114,7 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                 },
               ),
               SettingsTile(
-                leading: const Icon(Icons.looks_5_outlined),
+                leading: const Icon(Icons.filter_5),
                 title: Text(AppLocalizations.of(context)!.taylor_expansion),
                 description: const Text(''),
                 trailing: currentMethod == 'method_5'
@@ -125,7 +125,7 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                     context,
                     ref,
                     title: AppLocalizations.of(context)!.taylor_expansion,
-                    icon: Icons.looks_5_outlined,
+                    icon: Icons.filter_5,
                     formulaDescription: 'これは数式の説明です。',
                     overview: '概要の説明',
                     compatibleTypes: 'ここに相性の良いタイプを記載してください。',
@@ -136,7 +136,7 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                 },
               ),
               SettingsTile(
-                leading: const Icon(Icons.looks_6_outlined),
+                leading: const Icon(Icons.filter_6),
                 title: Text(AppLocalizations.of(context)!.simpson_act),
                 description: const Text(''),
                 trailing: currentMethod == 'method_6'
@@ -147,13 +147,79 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                     context,
                     ref,
                     title: AppLocalizations.of(context)!.simpson_act,
-                    icon: Icons.looks_6_outlined,
+                    icon: Icons.filter_6,
                     formulaDescription: 'これは数式の説明です。',
                     overview: '概要の説明',
                     compatibleTypes: 'ここに相性の良いタイプを記載してください。',
                     advantages: 'ここにメリットを記載してください。',
                     disadvantages: 'ここにデメリットを記載してください。',
                     methodKey: 'method_6',
+                  );// カスタムモーダル表示
+                },
+              ),
+              SettingsTile(
+                leading: const Icon(Icons.filter_7),
+                title: const Text('フーリエ変換'),
+                description: const Text(''),
+                trailing: currentMethod == 'method_7'
+                    ? const Icon(Icons.done, color: Colors.blue) // method_7選択時にチェックマーク
+                    : null,
+                onPressed: (context) {
+                  showCustomModal(
+                    context,
+                    ref,
+                    title: 'フーリエ変換',
+                    icon: Icons.filter_7,
+                    formulaDescription: 'これは数式の説明です。',
+                    overview: '概要の説明',
+                    compatibleTypes: 'ここに相性の良いタイプを記載してください。',
+                    advantages: 'ここにメリットを記載してください。',
+                    disadvantages: 'ここにデメリットを記載してください。',
+                    methodKey: 'method_7',
+                  );// カスタムモーダル表示
+                },
+              ),
+              SettingsTile(
+                leading: const Icon(Icons.filter_8),
+                title: const Text('ヘルムホルツ分解'),
+                description: const Text(''),
+                trailing: currentMethod == 'method_8'
+                    ? const Icon(Icons.done, color: Colors.blue) // method_8選択時にチェックマーク
+                    : null,
+                onPressed: (context) {
+                  showCustomModal(
+                    context,
+                    ref,
+                    title: 'ヘルムホルツ分解',
+                    icon: Icons.filter_8,
+                    formulaDescription: 'これは数式の説明です。',
+                    overview: '概要の説明',
+                    compatibleTypes: 'ここに相性の良いタイプを記載してください。',
+                    advantages: 'ここにメリットを記載してください。',
+                    disadvantages: 'ここにデメリットを記載してください。',
+                    methodKey: 'method_8',
+                  );// カスタムモーダル表示
+                },
+              ),
+              SettingsTile(
+                leading: const Icon(Icons.filter_9),
+                title: const Text('リーマン計量'),
+                description: const Text(''),
+                trailing: currentMethod == 'method_9'
+                    ? const Icon(Icons.done, color: Colors.blue) // method_9選択時にチェックマーク
+                    : null,
+                onPressed: (context) {
+                  showCustomModal(
+                    context,
+                    ref,
+                    title: 'リーマン計量',
+                    icon: Icons.filter_9,
+                    formulaDescription: 'これは数式の説明です。',
+                    overview: '概要の説明',
+                    compatibleTypes: 'ここに相性の良いタイプを記載してください。',
+                    advantages: 'ここにメリットを記載してください。',
+                    disadvantages: 'ここにデメリットを記載してください。',
+                    methodKey: 'method_9',
                   );// カスタムモーダル表示
                 },
               ),
