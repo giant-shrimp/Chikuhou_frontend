@@ -38,7 +38,11 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                     ref,
                     title: AppLocalizations.of(context)!.simple_gradient_calculation,
                     icon: Icons.filter_1,
-                    formulaDescription: 'これは数式の説明です。',
+                    formulas: [
+                      {'description': '2点間の直線距離をa,高度差をb,勾配の百分率をgとすると、','formula': r'a = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}'},
+                      {'formula': r'b = z_2 - z_1' },
+                      {'formula': r'g = \frac{b}{a} \cdot 100' },
+                    ],
                     overview: '2点間の直線距離と高度差を使って、勾配を簡単に計算します。シンプルで高速な計算が可能で、単調なルートに適しています。',
                     compatibleTypes: [
                       {'icon': Icons.directions_run_sharp, 'label': AppLocalizations.of(context)!.runner},
@@ -63,7 +67,11 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                     ref,
                     title: AppLocalizations.of(context)!.quadrature_by_pieces,
                     icon: Icons.filter_2,
-                    formulaDescription: 'これは数式の説明です。',
+                    formulas: [
+                      {'description': '複数の地点P1,P2,･･･Pnの座標と高度をx(n),y(n),z(n)とし、平均的な勾配をgとする。各区間の水平距離と高度差をΔd(n)、Δz(n)とすると,','formula': r'\Delta d(n) = \sqrt{(x_{n+1} - x_n)^2 + (y_{n+1} - y_n)^2}'},
+                      {'formula': r'\Delta z(n) = z_{n+1} - z_n' },
+                      {'formula': r'g = \frac{\sum_{i=1}^{n-1} \Delta z(i)}{\sum_{i=1}^{n-1} \Delta d(i)} \times 100' },
+                    ],
                     overview: 'ルートを複数の小さな区間に分け、それぞれの勾配を求めて平均を算出する方法です。細かい勾配変化を可視化しやすく、滑らかなルート計算に向いています。',
                     compatibleTypes: [
                       {'icon': Icons.assist_walker_sharp, 'label': AppLocalizations.of(context)!.senior},
@@ -90,7 +98,11 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                     ref,
                     title: AppLocalizations.of(context)!.linear_calculations,
                     icon: Icons.filter_3,
-                    formulaDescription: 'これは数式の説明です。',
+                    formulas: [
+                      {'formula': r'\text{２点の座標を} (x_1, y_1, z_1) \text{ と } (x_2, y_2, z_2) \text{ とする}'},
+                      {'formula': r'\text{勾配を} \, m = \frac{z_2 - z_1}{\sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}}' },
+                      {'formula': r'\text{勾配角を} \,\theta = \arctan(m)' },
+                    ],
                     overview: '2点間の勾配を直線近似で計算します。計算速度が速く、正確な角度を求められるため、実用性が高い手法です。',
                     compatibleTypes: [
                       {'icon': Icons.directions_walk_sharp, 'label': AppLocalizations.of(context)!.walker},
@@ -115,7 +127,19 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                     ref,
                     title: AppLocalizations.of(context)!.vector_product,
                     icon: Icons.filter_4,
-                    formulaDescription: 'これは数式の説明です。',
+                    formulas: [
+                      {'formula': r'\text{２点の座標を} (x_1, y_1, z_1),(x_2, y_2, z_2) \text{ とし、}'},
+                      {'formula': r'\text{位置ベクトル}A\text{を定義：}'},
+                      {'formula': r'A = (x_2-x_1,y_2-y_1,z_2-z_1)' },
+                      {'formula': r'\text{水平方向の基準ベクトル}B\text{を定義：}'},
+                      {'formula': r'B = (x_2-x_1,y_2-y_1,0)' },
+                      {'formula': r'\text{ベクトルの内積を計算：}'},
+                      {'formula': r'{|A \cdot B|} = (x_2 - x_1)^2 + (y_2 - y_1)^2' },
+                      {'formula': r'\text{ベクトルの大きさを計算：}'},
+                      {'formula': r'|A| = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2 + (z_2 - z_1)^2}' },
+                      {'formula': r'|B| = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}' },
+                      {'formula': r'\text{勾配角}\theta\text{を計算：}\theta = \arctan \left( \frac{|A \cdot B|}{|A| |B|} \right)'},
+                    ],
                     overview: '勾配をベクトルを使って計算し、方向と角度の情報を効率的に取得します。特に坂道の角度や方向を詳細に分析したい場合に適しています。',
                     compatibleTypes: [
                       {'icon': Icons.directions_bike_sharp, 'label': AppLocalizations.of(context)!.bike},
@@ -140,7 +164,15 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                     ref,
                     title: AppLocalizations.of(context)!.taylor_expansion,
                     icon: Icons.filter_5,
-                    formulaDescription: 'これは数式の説明です。',
+                    formulas: [
+                      {'formula': r'\text{緯度、経度をラジアンに変換：}'},
+                      {'formula': r'(\text{緯度、経度}) \times \frac{\pi}{180}' },
+                      {'formula': r'\text{２地点間の水平距離}d\text{を計算(ハヴァーサイン式を使用)：}'},
+                      {'formula': r'd = 2R \cdot \arcsin \sqrt{\sin^2(\frac{\Delta \Phi}{2}) + \cos(\Phi_1) \cdot \cos(\Phi_2) \cdot \sin^2\left(\frac{\Delta \lambda}{2}\right)}'},
+                      {'formula': r'\text{※}\Phi\text{は経度の差、}\lambda\text{は緯度の差、}R\text{は地中の半径を表す}'},
+                      {'formula': r'\text{高さの差を計算：}\Delta h = |h_2 - h_1|'},
+                      {'formula': r'\text{勾配角}\theta\text{を計算：}\theta = \arctan \left( \frac{\Delta h}{d} \right)'},
+                    ],
                     overview: 'ハヴァーサイン式を使って小さな角度での計算精度を高めつつ、テイラー展開で計算負荷を軽減します。広範囲の距離計算には適しませんが、精度が求められる場面で有効です。',
                     compatibleTypes: [
                       {'icon': Icons.directions_run_sharp, 'label': AppLocalizations.of(context)!.runner},
@@ -166,7 +198,13 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                     ref,
                     title: AppLocalizations.of(context)!.simpson_act,
                     icon: Icons.filter_6,
-                    formulaDescription: 'これは数式の説明です。',
+                    formulas: [
+                      {'formula': r'\text{区間}[a,b]\text{上の関数}f(x)\text{の積分を近似する：}' },
+                      {'formula': r'\int_a^b f(x) \, dx \approx 3h \left[ f(x_0) + 4 \sum_{i=1,3,5,\dots,n-1} f(x_i) + 2 \sum_{i=2,4,6,\dots,n-2} f(x_i) + f(x_n) \right]'},
+                      {'formula': r'h = \frac{b-a}{n}\text{：各区間の幅}' },
+                      {'formula': r'x_0,x_1,...,x_n\text{：区間を分割した点}' },
+                      {'formula': r'f(x_i)\text{：各点での関数の値}' },
+                    ],
                     overview: 'ルートの勾配を少ない区間分割で高精度に近似する積分法です。特に滑らかな関数や緩やかな地形の解析に向いています。',
                     compatibleTypes: [
                       {'icon': Icons.assist_walker_sharp, 'label': AppLocalizations.of(context)!.senior},
@@ -192,7 +230,12 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                     ref,
                     title: 'フーリエ変換',
                     icon: Icons.filter_7,
-                    formulaDescription: 'これは数式の説明です。',
+                    formulas: [
+                      {'formula': r'\text{地形データをフーリエ変換して急激な勾配の周波数成分を抽出：}' },
+                      {'formula': r'F(k) = \int_{-\infty}^\infty z(x) e^{-2 \pi i k x} \, dx'},
+                      {'formula': r'\text{急激な変化を周波数成分で解析後、逆変換で局所勾配を再構築：}' },
+                      {'formula': r'z(x) = \int_{-\infty}^\infty F(k) e^{2 \pi i k x} \, dk' },
+                    ],
                     overview: '急激な地形や勾配変化の大きなルートに対応するため、局所的な勾配や変化率を詳細に解析する手法を活用。特に、区分的な計算や補間技術を用いることで、地形の急激な変化を正確に捉え、適切なルートを提案します。',
                     compatibleTypes: [
                       {'icon': Icons.directions_run_sharp, 'label': AppLocalizations.of(context)!.runner},
@@ -217,7 +260,11 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                     ref,
                     title: 'ヘルムホルツ分解',
                     icon: Icons.filter_8,
-                    formulaDescription: 'これは数式の説明です。',
+                    formulas: [
+                      {'formula': r'\mathbf{F} = \nabla \phi + \nabla \times \mathbf{A}' },
+                      {'formula': r'\nabla \phi\text{：ポテンシャル場(純粋な勾配成分)}'},
+                      {'formula': r'\nabla \times \mathbf{A}\text{：回転場(循環的成分)}' },
+                    ],
                     overview: 'ヘルムホルツ分解は、任意のベクトル場Fをポテンシャル場 (勾配成分)と回転場 (循環成分)に分ける理論です。この分解により、地形の滑らかさや、回転場が与える影響を個別に評価できます。ポテンシャル場に基づいて、最もエネルギー効率の良いルートを計算します。',
                     compatibleTypes: [
                       {'icon': Icons.directions_walk_sharp, 'label': AppLocalizations.of(context)!.walker},
@@ -243,7 +290,11 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                     ref,
                     title: 'リーマン計量',
                     icon: Icons.filter_9,
-                    formulaDescription: 'これは数式の説明です。',
+                    formulas: [
+                      {'formula': r'ds^2 = \sum_{i,j} g_{ij}(x) \, dx^i dx^j' },
+                      {'formula': r'g_{ij}(x)\text{：リーマン計量テンソル。空間の局所的な幾何学的性質}'},
+                      {'formula': r'ds^2\text{：空間内の微小距離(弧長)}' },
+                    ],
                     overview: 'リーマン計量は、空間や地形の曲がり具合や、局所的な伸縮を考慮した距離や勾配を計算する手法です。これに基づくルート計算では、地形が平坦でない場合でも、実際の移動距離やエネルギー消費量をリアルに反映したルートを提供できます。',
                     compatibleTypes: [
                       {'icon': Icons.assist_walker_sharp, 'label': AppLocalizations.of(context)!.senior},
