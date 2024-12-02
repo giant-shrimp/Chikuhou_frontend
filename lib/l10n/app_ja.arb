@@ -59,6 +59,16 @@
   "vector_product": "ベクトル積",
   "taylor_expansion": "テイラー展開",
   "simpson_act": "シンプソン法",
+  "fourier_transform": "フーリエ変換",
+  "helmholtz_decomposition": "ヘルムホルツ分解",
+  "riemannian_metric": "リーマン計量",
+
+  "formula": "数式",
+  "overview": "概要",
+  "compatible_types": "相性の良いタイプ",
+  "advantages": "メリット",
+  "disadvantages": "デメリット",
+  "confirm": "決定",
 
   "walker": "ウォーカー",
   "runner": "ランナー",
