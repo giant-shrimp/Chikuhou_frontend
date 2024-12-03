@@ -12,7 +12,15 @@ class RainCloudRadarScreen extends StatelessWidget {
         automaticallyImplyLeading: false,
       ),
       body:
-      const Center(child: Text('雨雲レーダー画面', style: TextStyle(fontSize: 32.0))),
+            Expanded(
+        child: Container(
+          width:600,height:1300,
+          child: Image.asset(
+            'images/amagumo.jpg',
+            fit: BoxFit.cover,
+          )
+        )
+      )
     );
   }
 }

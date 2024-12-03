@@ -12,7 +12,15 @@ class SecuringEvacuationRoutesScreen extends StatelessWidget {
         automaticallyImplyLeading: false,
       ),
       body:
-      const Center(child: Text('避難経路画面', style: TextStyle(fontSize: 32.0))),
+                  Expanded(
+        child: Container(
+          width:600,height:1300,
+          child: Image.asset(
+            'images/hinanjo.jpg',
+            fit: BoxFit.cover,
+          )
+        )
+      )
     );
   }
 }

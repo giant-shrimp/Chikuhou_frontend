@@ -12,7 +12,15 @@ class CalorieCountScreen extends StatelessWidget {
         automaticallyImplyLeading: false,
       ),
       body:
-      const Center(child: Text('カロリー計算画面', style: TextStyle(fontSize: 32.0))),
+                  Expanded(
+        child: Container(
+          width:600,height:1300,
+          child: Image.asset(
+            'images/tizu.jpg',
+            fit: BoxFit.cover,
+          )
+        )
+      )
     );
   }
 }
