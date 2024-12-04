@@ -244,12 +244,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
                                 elevationsList.add(elevations);
 
+                                // 色を生成
+                                final routeColor = Color.lerp(
+                                    Colors.lightBlue,
+                                    const Color.fromARGB(255, 2, 9, 49),
+                                    i / (multipleRoutes.length - 1))!;
+
                                 allPolylines.add(
                                   Polyline(
                                     polylineId: PolylineId('route_$i'),
                                     points: points,
-                                    color: Colors.blue, // 任意の色
-                                    width: 3,
+                                    color: routeColor, // 動的に色を設定
+                                    width: 6,
                                   ),
                                 );
 
