@@ -7,12 +7,17 @@ class CalorieCountScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.calorie_count),
-        automaticallyImplyLeading: false,
-      ),
-      body:
-      const Center(child: Text('カロリー計算画面', style: TextStyle(fontSize: 32.0))),
-    );
+        appBar: AppBar(
+          title: Text(AppLocalizations.of(context)!.calorie_count),
+          automaticallyImplyLeading: false,
+        ),
+        body: Expanded(
+            child: Container(
+                width: 600,
+                height: 1300,
+                child: Image.asset(
+                  'assets/map.jpg',
+                  fit: BoxFit.cover,
+                ))));
   }
 }

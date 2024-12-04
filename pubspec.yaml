@@ -38,5 +38,8 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/image.png
+    - assets/hazardMap.jpg
+    - assets/rainCloud.jpg
+    - assets/marathon.png
+    - assets/map.jpg
     - .env

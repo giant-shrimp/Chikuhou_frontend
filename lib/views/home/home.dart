@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../viewmodels/map/route_viewmodel.dart';
 import '../../viewmodels/map/gradient_calculator.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../widgets/common/custom_button.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import '../settings/settings_calculation_method.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env"); // dotenvファイルをロード
@@ -27,23 +30,20 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends HookConsumerWidget {
   const HomeScreen({super.key});
 
   @override
-  _HomeScreenState createState() => _HomeScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    // 状態の初期化
+    final mapController = useState<GoogleMapController?>(null);
+    final polylines = useState<Set<Polyline>>({});
+    final isLoading = useState(false);
+    final loadingRoutesCount = useState(0);
+    final originController = TextEditingController();
+    final destinationController = TextEditingController();
+    final currentMethod = ref.watch(methodProvider);
 
-class _HomeScreenState extends State<HomeScreen> {
-  GoogleMapController? _mapController;
-  Set<Polyline> _polylines = {};
-  final TextEditingController _originController = TextEditingController();
-  final TextEditingController _destinationController = TextEditingController();
-  bool _isLoading = false;
-  int _loadingRoutesCount = 0; // ローディング中のルート数を追跡
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('アルケール'),
@@ -59,10 +59,10 @@ class _HomeScreenState extends State<HomeScreen> {
             myLocationEnabled: true,
             myLocationButtonEnabled: true,
             mapType: MapType.normal,
-            onMapCreated: (controller) => _mapController = controller,
-            polylines: _polylines,
+            onMapCreated: (controller) => mapController.value = controller,
+            polylines: polylines.value,
           ),
-          if (_isLoading)
+          if (isLoading.value)
             Center(
               child: Container(
                 padding: const EdgeInsets.all(16),
@@ -74,13 +74,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     LinearProgressIndicator(
-                      value: _loadingRoutesCount / 20, // 最大20ルートを基準
+                      value: loadingRoutesCount.value / 20, // 最大20ルートを基準
                       backgroundColor: Colors.grey[200],
                       color: Colors.deepPurple,
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      '${AppLocalizations.of(context)!.number_of_routes_being_acquired}: $_loadingRoutesCount',
+                      '${AppLocalizations.of(context)!.number_of_routes_being_acquired}: ${loadingRoutesCount.value}',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -96,7 +96,17 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.only(bottom: 15.0), // 下からの余白を調整
         child: FloatingActionButton(
           onPressed: () {
-            _showRouteSearchModal(context);
+            _showRouteSearchModal(
+              context,
+              ref,
+              mapController,
+              polylines,
+              originController,
+              destinationController,
+              isLoading,
+              loadingRoutesCount,
+              currentMethod,
+            );
           },
           backgroundColor: Colors.white.withOpacity(0.8),
           child: const Icon(Icons.south),
@@ -106,13 +116,17 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _setPolylines(Set<Polyline> polylines) {
-    setState(() {
-      _polylines = polylines;
-    });
-  }
-
-  Future<void> _showRouteSearchModal(BuildContext context) async {
+  Future<void> _showRouteSearchModal(
+    BuildContext context,
+    WidgetRef ref,
+    ValueNotifier<GoogleMapController?> mapController,
+    ValueNotifier<Set<Polyline>> polylines,
+    TextEditingController originController,
+    TextEditingController destinationController,
+    ValueNotifier<bool> isLoading,
+    ValueNotifier<int> loadingRoutesCount,
+    String currentMethod,
+  ) async {
     String apiKey = dotenv.env['API_KEY']!;
     final routeViewModel = RouteViewModel(apiKey: apiKey);
 
@@ -151,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
-                          controller: _originController,
+                          controller: originController,
                           decoration: InputDecoration(
                             labelText:
                                 AppLocalizations.of(context)!.departure_point,
@@ -160,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(height: 8),
                         TextFormField(
-                          controller: _destinationController,
+                          controller: destinationController,
                           decoration: InputDecoration(
                             labelText:
                                 AppLocalizations.of(context)!.destination,
@@ -172,36 +186,60 @@ class _HomeScreenState extends State<HomeScreen> {
                           text: AppLocalizations.of(context)!.route_search,
                           onPressed: () async {
                             Navigator.pop(context); // モーダルを閉じる
-                            setState(() {
-                              _isLoading = true;
-                              _loadingRoutesCount = 0; // 初期化
-                            });
+                            isLoading.value = true;
+                            loadingRoutesCount.value = 0; // 初期化
 
                             try {
-                              // 最初に始点にカメラを移動
-                              if (_originController.text.isNotEmpty) {
+                              // 始点・終点の入力チェック
+                              if (originController.text.isNotEmpty &&
+                                  destinationController.text.isNotEmpty) {
                                 final originLocation = await routeViewModel
                                     .fetchCoordinatesFromAddress(
-                                        _originController.text);
-                                _mapController?.animateCamera(
-                                  CameraUpdate.newLatLng(
-                                    LatLng(originLocation.latitude,
-                                        originLocation.longitude),
+                                  originController.text,
+                                );
+                                final destinationLocation = await routeViewModel
+                                    .fetchCoordinatesFromAddress(
+                                  destinationController.text,
+                                );
+
+                                // カメラ移動
+                                final bounds = LatLngBounds(
+                                  southwest: LatLng(
+                                    originLocation.latitude <
+                                            destinationLocation.latitude
+                                        ? originLocation.latitude
+                                        : destinationLocation.latitude,
+                                    originLocation.longitude <
+                                            destinationLocation.longitude
+                                        ? originLocation.longitude
+                                        : destinationLocation.longitude,
                                   ),
+                                  northeast: LatLng(
+                                    originLocation.latitude >
+                                            destinationLocation.latitude
+                                        ? originLocation.latitude
+                                        : destinationLocation.latitude,
+                                    originLocation.longitude >
+                                            destinationLocation.longitude
+                                        ? originLocation.longitude
+                                        : destinationLocation.longitude,
+                                  ),
+                                );
+                                mapController.value?.animateCamera(
+                                  CameraUpdate.newLatLngBounds(bounds, 50),
                                 );
                               }
 
-                              // ルートを取得
+                              // 複数ルートの取得
                               final multipleRoutes =
                                   await routeViewModel.fetchMultipleRoutes(
-                                _originController.text,
-                                _destinationController.text,
+                                originController.text,
+                                destinationController.text,
                                 apiKey,
                               );
 
                               final List<List<double>> elevationsList = [];
                               final Set<Polyline> allPolylines = {};
-                              LatLngBounds? bounds;
 
                               // ルートを描画
                               for (int i = 0; i < multipleRoutes.length; i++) {
@@ -214,26 +252,33 @@ class _HomeScreenState extends State<HomeScreen> {
 
                                 elevationsList.add(elevations);
 
+                                final routeColor = Color.lerp(
+                                  Colors.lightBlue,
+                                  const Color.fromARGB(255, 8, 29, 149),
+                                  i / (multipleRoutes.length - 1),
+                                )!;
+
                                 allPolylines.add(
                                   Polyline(
                                     polylineId: PolylineId('route_$i'),
                                     points: points,
-                                    color: Colors.blue, // 任意の色
-                                    width: 3,
+                                    color: routeColor,
+                                    width: 6,
                                   ),
                                 );
 
-                                setState(() {
-                                  _loadingRoutesCount = i + 1;
-                                  _polylines = allPolylines;
-                                });
+                                loadingRoutesCount.value = i + 1;
+                                polylines.value = allPolylines;
                               }
 
-                              // 勾配が最も緩いルートを特定
+                              // 最も緩やかなルートを描画
                               final gradientCalculator = GradientCalculator();
                               final leastGradientRoute =
                                   gradientCalculator.findLeastGradientRoute(
-                                      multipleRoutes, elevationsList);
+                                multipleRoutes,
+                                elevationsList,
+                                currentMethod,
+                              );
 
                               final leastGradientPoints =
                                   routeViewModel.decodePolyline(
@@ -241,31 +286,26 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ['points'],
                               );
 
-                              setState(() {
-                                _polylines = {
-                                  Polyline(
-                                    polylineId: const PolylineId(
-                                        'least_gradient_route'),
-                                    points: leastGradientPoints,
-                                    color: Colors.green.withOpacity(0.7),
-                                    width: 12,
-                                  ),
-                                };
-                              });
+                              polylines.value = {
+                                Polyline(
+                                  polylineId:
+                                      const PolylineId('least_gradient_route'),
+                                  points: leastGradientPoints,
+                                  color: Colors.green.withOpacity(0.7),
+                                  width: 12,
+                                ),
+                              };
 
-                              // 勾配が緩いルートにカメラを移動
                               final leastGradientBounds =
                                   _calculateBounds(leastGradientPoints);
-                              _mapController?.animateCamera(
+                              mapController.value?.animateCamera(
                                 CameraUpdate.newLatLngBounds(
                                     leastGradientBounds, 50),
                               );
                             } catch (error) {
                               print('ルート取得エラー: $error');
                             } finally {
-                              setState(() {
-                                _isLoading = false;
-                              });
+                              isLoading.value = false;
                             }
                           },
                         ),
@@ -294,28 +334,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return LatLngBounds(
       southwest: LatLng(minLat!, minLng!),
       northeast: LatLng(maxLat!, maxLng!),
-    );
-  }
-
-  LatLngBounds _expandBounds(LatLngBounds bounds, List<LatLng> points) {
-    final additionalBounds = _calculateBounds(points);
-    return LatLngBounds(
-      southwest: LatLng(
-        bounds.southwest.latitude < additionalBounds.southwest.latitude
-            ? bounds.southwest.latitude
-            : additionalBounds.southwest.latitude,
-        bounds.southwest.longitude < additionalBounds.southwest.longitude
-            ? bounds.southwest.longitude
-            : additionalBounds.southwest.longitude,
-      ),
-      northeast: LatLng(
-        bounds.northeast.latitude > additionalBounds.northeast.latitude
-            ? bounds.northeast.latitude
-            : additionalBounds.northeast.latitude,
-        bounds.northeast.longitude > additionalBounds.northeast.longitude
-            ? bounds.northeast.longitude
-            : additionalBounds.northeast.longitude,
-      ),
     );
   }
 }
