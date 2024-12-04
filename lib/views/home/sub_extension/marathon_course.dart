@@ -7,20 +7,17 @@ class MarathonCourseScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.marathon_course),
-        automaticallyImplyLeading: false,
-      ),
-      body:
-                  Expanded(
-        child: Container(
-          width:600,height:1300,
-          child: Image.asset(
-            'assets/marason.png',
-            fit: BoxFit.cover,
-          )
-        )
-      )
-    );
+        appBar: AppBar(
+          title: Text(AppLocalizations.of(context)!.marathon_course),
+          automaticallyImplyLeading: false,
+        ),
+        body: Expanded(
+            child: Container(
+                width: 600,
+                height: 1300,
+                child: Image.asset(
+                  'assets/marathon.png',
+                  fit: BoxFit.cover,
+                ))));
   }
 }

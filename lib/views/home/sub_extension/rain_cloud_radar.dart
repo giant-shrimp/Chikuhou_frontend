@@ -7,20 +7,17 @@ class RainCloudRadarScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.rain_cloud_radar),
-        automaticallyImplyLeading: false,
-      ),
-      body:
-            Expanded(
-        child: Container(
-          width:600,height:1300,
-          child: Image.asset(
-            'assets/amagumo.jpg',
-            fit: BoxFit.cover,
-          )
-        )
-      )
-    );
+        appBar: AppBar(
+          title: Text(AppLocalizations.of(context)!.rain_cloud_radar),
+          automaticallyImplyLeading: false,
+        ),
+        body: Expanded(
+            child: Container(
+                width: 600,
+                height: 1300,
+                child: Image.asset(
+                  'assets/rainCloud.jpg',
+                  fit: BoxFit.cover,
+                ))));
   }
 }
