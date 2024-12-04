@@ -16,11 +16,30 @@ class GradientCalculator {
         return _gradientCalcMethod_2(routes, elevationsList);
       case "method_3":
         return _gradientCalcMethod_3(routes, elevationsList);
+      case "method_4":
+        // 未実装
+        return _gradientCalcMethod_4(routes, elevationsList);
+      case "method_5":
+        // 未実装
+        return _gradientCalcMethod_5(routes, elevationsList);
+      case "method_6":
+        // 未実装
+        return _gradientCalcMethod_6(routes, elevationsList);
+      case "method_7":
+        // 未実装
+        return _gradientCalcMethod_7(routes, elevationsList);
+      case "method_8":
+        // 未実装
+        return _gradientCalcMethod_8(routes, elevationsList);
+      case "method_9":
+        // 未実装
+        return _gradientCalcMethod_9(routes, elevationsList);
       default:
         throw Exception("未知の計算方法: $method");
     }
   }
 
+  // 計算方法1:単純勾配計算
   Map<String, dynamic> _gradientCalcMethod_1(
       List<Map<String, dynamic>> routes, List<List<double>> elevationsList) {
     double minGradientSum = double.infinity;
@@ -56,38 +75,17 @@ class GradientCalculator {
     return leastGradientRoute;
   }
 
-  /// 計算方法2: 距離を加味した加重平均
+  /// 計算方法2: 区分求積法
   Map<String, dynamic> _gradientCalcMethod_2(
     List<Map<String, dynamic>> routes,
     List<List<double>> elevationsList,
   ) {
-    double minWeightedGradient = double.infinity;
     Map<String, dynamic>? leastGradientRoute;
 
     for (int i = 0; i < routes.length; i++) {
       final route = routes[i];
       final elevations = elevationsList[i];
       final polyline = decodePolyline(route['overview_polyline']['points']);
-
-      double totalGradient = 0.0;
-      double totalDistance = 0.0;
-
-      for (int j = 0;
-          j < polyline.length - 1 && j < elevations.length - 1;
-          j++) {
-        final distance = _calculateDistance(polyline[j], polyline[j + 1]);
-        final elevationDiff = elevations[j + 1] - elevations[j];
-        if (elevationDiff != 0) {
-          totalGradient += (distance * elevationDiff.abs());
-          totalDistance += distance;
-        }
-      }
-
-      final weightedGradient = totalGradient / totalDistance;
-      if (weightedGradient < minWeightedGradient) {
-        minWeightedGradient = weightedGradient;
-        leastGradientRoute = route;
-      }
     }
 
     // null チェックをループ外で行う
@@ -98,44 +96,148 @@ class GradientCalculator {
     return leastGradientRoute;
   }
 
-  /// 計算方法3: 平均勾配の計算
+  /// 計算方法3: 線形計算
   Map<String, dynamic> _gradientCalcMethod_3(
     List<Map<String, dynamic>> routes,
     List<List<double>> elevationsList,
   ) {
-    double minAverageGradient = double.infinity;
     Map<String, dynamic>? leastGradientRoute;
 
     for (int i = 0; i < routes.length; i++) {
       final route = routes[i];
       final elevations = elevationsList[i];
       final polyline = decodePolyline(route['overview_polyline']['points']);
-
-      double totalGradient = 0.0;
-      int segmentCount = 0;
-
-      for (int j = 0;
-          j < polyline.length - 1 && j < elevations.length - 1;
-          j++) {
-        final elevationDiff = elevations[j + 1] - elevations[j];
-        if (elevationDiff != 0) {
-          totalGradient += elevationDiff.abs();
-          segmentCount++;
-        }
-      }
-
-      // 平均勾配を計算
-      final averageGradient =
-          segmentCount > 0 ? totalGradient / segmentCount : double.infinity;
-
-      if (averageGradient < minAverageGradient) {
-        minAverageGradient = averageGradient;
-        leastGradientRoute = route;
-      }
     }
 
+    // null チェックをループ外で行う
     if (leastGradientRoute == null) {
       throw Exception("最適なルートが見つかりませんでした。");
+    }
+
+    return leastGradientRoute;
+  }
+
+  /// 計算方法4: ベクトル積
+  Map<String, dynamic> _gradientCalcMethod_4(
+    List<Map<String, dynamic>> routes,
+    List<List<double>> elevationsList,
+  ) {
+    Map<String, dynamic>? leastGradientRoute;
+
+    for (int i = 0; i < routes.length; i++) {
+      final route = routes[i];
+      final elevations = elevationsList[i];
+      final polyline = decodePolyline(route['overview_polyline']['points']);
+    }
+
+    // null チェックをループ外で行う
+    if (leastGradientRoute == null) {
+      throw Exception("最適なルートが見つかりませんでした。");
+    }
+
+    return leastGradientRoute;
+  }
+
+  /// 計算方法5: テイラー展開
+  Map<String, dynamic> _gradientCalcMethod_5(
+    List<Map<String, dynamic>> routes,
+    List<List<double>> elevationsList,
+  ) {
+    Map<String, dynamic>? leastGradientRoute;
+
+    for (int i = 0; i < routes.length; i++) {
+      final route = routes[i];
+      final elevations = elevationsList[i];
+      final polyline = decodePolyline(route['overview_polyline']['points']);
+    }
+
+    // null チェックをループ外で行う
+    if (leastGradientRoute == null) {
+      throw Exception("最適なルートが見つかりませんでした。");
+    }
+
+    return leastGradientRoute;
+  }
+
+  /// 計算方法6: シンプソン法
+  Map<String, dynamic> _gradientCalcMethod_6(
+    List<Map<String, dynamic>> routes,
+    List<List<double>> elevationsList,
+  ) {
+    Map<String, dynamic>? leastGradientRoute;
+
+    for (int i = 0; i < routes.length; i++) {
+      final route = routes[i];
+      final elevations = elevationsList[i];
+      final polyline = decodePolyline(route['overview_polyline']['points']);
+    }
+
+    // null チェックをループ外で行う
+    if (leastGradientRoute == null) {
+      throw Exception("最適なルートが見つかりませんでした。");
+    }
+
+    return leastGradientRoute;
+  }
+
+  /// 計算方法7: フーリエ変換
+  Map<String, dynamic> _gradientCalcMethod_7(
+    List<Map<String, dynamic>> routes,
+    List<List<double>> elevationsList,
+  ) {
+    Map<String, dynamic>? leastGradientRoute;
+
+    for (int i = 0; i < routes.length; i++) {
+      final route = routes[i];
+      final elevations = elevationsList[i];
+      final polyline = decodePolyline(route['overview_polyline']['points']);
+    }
+
+    // null チェックをループ外で行う
+    if (leastGradientRoute == null) {
+      throw Exception("最適なルートが見つかりませんでした。");
+    }
+
+    return leastGradientRoute;
+  }
+
+  ///  計算方法8: ヘルツホルム分解
+  Map<String, dynamic> _gradientCalcMethod_8(
+    List<Map<String, dynamic>> routes,
+    List<List<double>> elevationsList,
+  ) {
+    Map<String, dynamic>? leastGradientRoute;
+
+    for (int i = 0; i < routes.length; i++) {
+      final route = routes[i];
+      final elevations = elevationsList[i];
+      final polyline = decodePolyline(route['overview_polyline']['points']);
+    }
+
+    // null チェックをループ外で行う
+    if (leastGradientRoute == null) {
+      throw Exception("最適なルートが見つかりませんでした。");
+    }
+
+    return leastGradientRoute;
+  }
+
+  ///  計算方法9: リーマン計量
+  Map<String, dynamic> _gradientCalcMethod_9(
+    List<Map<String, dynamic>> routes,
+    List<List<double>> elevationsList,
+  ) {
+    Map<String, dynamic>? leastGradientRoute;
+
+    for (int i = 0; i < routes.length; i++) {
+      final route = routes[i];
+      final elevations = elevationsList[i];
+      final polyline = decodePolyline(route['overview_polyline']['points']);
+    }
+
+    // null チェックをループ外で行う
+    if (leastGradientRoute == null) {
+      throw Exception("最適なルートが見つかりませませんでした。");
     }
 
     return leastGradientRoute;
