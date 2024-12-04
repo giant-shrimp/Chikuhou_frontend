@@ -4,7 +4,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:math';
 import 'gradient_calculator.dart';
-import '../../views/settings/settings_calculation_method.dart';
 
 class RouteViewModel extends ChangeNotifier {
   final String apiKey;
@@ -119,7 +118,6 @@ class RouteViewModel extends ChangeNotifier {
     final leastGradientRoute = gradientCalculator.findLeastGradientRoute(
       multipleRoutes,
       elevationsList,
-      'method_1',
     );
 
     print("最も勾配が緩やかなルートを選択しました。");
