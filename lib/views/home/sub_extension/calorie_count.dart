@@ -16,7 +16,7 @@ class CalorieCountScreen extends StatelessWidget {
         child: Container(
           width:600,height:1300,
           child: Image.asset(
-            'images/tizu.jpg',
+            'assets/tizu.jpg',
             fit: BoxFit.cover,
           )
         )

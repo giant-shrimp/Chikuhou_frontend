@@ -16,7 +16,7 @@ class RainCloudRadarScreen extends StatelessWidget {
         child: Container(
           width:600,height:1300,
           child: Image.asset(
-            'images/amagumo.jpg',
+            'assets/amagumo.jpg',
             fit: BoxFit.cover,
           )
         )

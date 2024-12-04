@@ -16,7 +16,7 @@ class SecuringEvacuationRoutesScreen extends StatelessWidget {
         child: Container(
           width:600,height:1300,
           child: Image.asset(
-            'images/hinanjo.jpg',
+            'sesets/hinanjo.jpg',
             fit: BoxFit.cover,
           )
         )

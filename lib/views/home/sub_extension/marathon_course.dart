@@ -16,7 +16,7 @@ class MarathonCourseScreen extends StatelessWidget {
         child: Container(
           width:600,height:1300,
           child: Image.asset(
-            'images/marason.png',
+            'assets/marason.png',
             fit: BoxFit.cover,
           )
         )
