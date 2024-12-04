@@ -9,20 +9,6 @@ class GradientCalculator {
       throw Exception("ルートまたは高度データがありません。");
     }
 
-    switch (method) {
-      case "method1":
-        return _gradientCalcMethod1(routes, elevationsList);
-      case "method2":
-        return _gradientCalcMethod2(routes, elevationsList);
-      case "method3":
-        return _gradientCalcMethod3(routes, elevationsList);
-      default:
-        throw Exception("未知の計算方法: $method");
-    }
-  }
-
-  Map<String, dynamic> _gradientCalcMethod1(
-      List<Map<String, dynamic>> routes, List<List<double>> elevationsList) {
     double minGradientSum = double.infinity;
     Map<String, dynamic>? leastGradientRoute;
 
@@ -32,113 +18,30 @@ class GradientCalculator {
       final polyline = decodePolyline(route['overview_polyline']['points']);
 
       double totalGradient = 0.0;
-      const double distance = 50.0; // 50m間隔
 
-      for (int j = 0;
-          j < polyline.length - 1 && j < elevations.length - 1;
-          j++) {
-        final elevationDiff = elevations[j + 1] - elevations[j];
-        if (elevationDiff != 0) {
-          totalGradient += (distance * 100 / elevationDiff).abs();
+      for (int i = 0;
+          i < polyline.length - 1 && i < elevations.length - 1;
+          i++) {
+        // 2点間の直線距離を計算
+        final a = 50.0; // 50m間隔
+
+        // 高度差を計算
+        final b = elevations[i + 1] - elevations[i];
+
+        // 勾配を計算 (b が 0 に近い場合は無視)
+        if (b != 0) {
+          totalGradient += (a * 100 / b).abs();
         }
       }
 
+      // 勾配の総和が最小のルートを更新
       if (totalGradient < minGradientSum) {
         minGradientSum = totalGradient;
         leastGradientRoute = route;
       }
     }
 
-    if (leastGradientRoute == null) {
-      throw Exception("最適なルートが見つかりませんでした。");
-    }
-
-    return leastGradientRoute;
-  }
-
-  /// 計算方法2: 距離を加味した加重平均
-  Map<String, dynamic> _gradientCalcMethod2(
-    List<Map<String, dynamic>> routes,
-    List<List<double>> elevationsList,
-  ) {
-    double minWeightedGradient = double.infinity;
-    Map<String, dynamic>? leastGradientRoute;
-
-    for (int i = 0; i < routes.length; i++) {
-      final route = routes[i];
-      final elevations = elevationsList[i];
-      final polyline = decodePolyline(route['overview_polyline']['points']);
-
-      double totalGradient = 0.0;
-      double totalDistance = 0.0;
-
-      for (int j = 0;
-          j < polyline.length - 1 && j < elevations.length - 1;
-          j++) {
-        final distance = _calculateDistance(polyline[j], polyline[j + 1]);
-        final elevationDiff = elevations[j + 1] - elevations[j];
-        if (elevationDiff != 0) {
-          totalGradient += (distance * elevationDiff.abs());
-          totalDistance += distance;
-        }
-      }
-
-      final weightedGradient = totalGradient / totalDistance;
-      if (weightedGradient < minWeightedGradient) {
-        minWeightedGradient = weightedGradient;
-        leastGradientRoute = route;
-      }
-    }
-
-    // null チェックをループ外で行う
-    if (leastGradientRoute == null) {
-      throw Exception("最適なルートが見つかりませんでした。");
-    }
-
-    return leastGradientRoute;
-  }
-
-  /// 計算方法3: 平均勾配の計算
-  Map<String, dynamic> _gradientCalcMethod3(
-    List<Map<String, dynamic>> routes,
-    List<List<double>> elevationsList,
-  ) {
-    double minAverageGradient = double.infinity;
-    Map<String, dynamic>? leastGradientRoute;
-
-    for (int i = 0; i < routes.length; i++) {
-      final route = routes[i];
-      final elevations = elevationsList[i];
-      final polyline = decodePolyline(route['overview_polyline']['points']);
-
-      double totalGradient = 0.0;
-      int segmentCount = 0;
-
-      for (int j = 0;
-          j < polyline.length - 1 && j < elevations.length - 1;
-          j++) {
-        final elevationDiff = elevations[j + 1] - elevations[j];
-        if (elevationDiff != 0) {
-          totalGradient += elevationDiff.abs();
-          segmentCount++;
-        }
-      }
-
-      // 平均勾配を計算
-      final averageGradient =
-          segmentCount > 0 ? totalGradient / segmentCount : double.infinity;
-
-      if (averageGradient < minAverageGradient) {
-        minAverageGradient = averageGradient;
-        leastGradientRoute = route;
-      }
-    }
-
-    if (leastGradientRoute == null) {
-      throw Exception("最適なルートが見つかりませんでした。");
-    }
-
-    return leastGradientRoute;
+    return leastGradientRoute!;
   }
 
   /// Polyline をデコード (Google Maps API Polyline)
