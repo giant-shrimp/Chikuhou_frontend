@@ -4,7 +4,10 @@ import 'dart:math';
 class GradientCalculator {
   /// 勾配を計算し、最も緩いルートを返す
   Map<String, dynamic> findLeastGradientRoute(
-      List<Map<String, dynamic>> routes, List<List<double>> elevationsList) {
+    List<Map<String, dynamic>> routes,
+    List<List<double>> elevationsList,
+    String methodKey,
+  ) {
     if (routes.isEmpty || elevationsList.isEmpty) {
       throw Exception("ルートまたは高度データがありません。");
     }
@@ -19,22 +22,35 @@ class GradientCalculator {
 
       double totalGradient = 0.0;
 
-      for (int i = 0;
-          i < polyline.length - 1 && i < elevations.length - 1;
-          i++) {
-        // 2点間の直線距離を計算
-        final a = 50.0; // 50m間隔
-
-        // 高度差を計算
-        final b = elevations[i + 1] - elevations[i];
-
-        // 勾配を計算 (b が 0 に近い場合は無視)
-        if (b != 0) {
-          totalGradient += (a * 100 / b).abs();
+      // ステータスに応じた計算ロジックの切り替え
+      if (methodKey == 'method_1') {
+        // 単純勾配計算のロジック
+        for (int i = 0; i < elevations.length - 1; i++) {
+          final a = 50.0; // 距離間隔（例として50m）
+          final b = elevations[i + 1] - elevations[i];
+          if (b != 0) {
+            totalGradient += (b / a).abs() * 100; // 勾配百分率を計算
+          }
+        }
+      } else if (methodKey == 'method_2') {
+        // 区分求積による計算のロジック
+        for (int i = 0; i < elevations.length - 1; i++) {
+          final deltaD = _calculateDistance(polyline[i], polyline[i + 1]);
+          final deltaZ = elevations[i + 1] - elevations[i];
+          if (deltaD != 0) {
+            totalGradient += (deltaZ / deltaD).abs() * 100;
+          }
+        }
+      } else if (methodKey == 'method_3') {
+        // 直線計算のロジック
+        final totalDistance = 1;
+        final totalElevationChange = elevations.last - elevations.first;
+        if (totalDistance != 0) {
+          totalGradient = (totalElevationChange / totalDistance).abs() * 100;
         }
       }
 
-      // 勾配の総和が最小のルートを更新
+      // 最小の勾配を持つルートを選択
       if (totalGradient < minGradientSum) {
         minGradientSum = totalGradient;
         leastGradientRoute = route;
