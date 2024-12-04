@@ -43,7 +43,6 @@ class SignInScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 60),
             Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 CustomButton(
                   text: AppLocalizations.of(context)!.sign_in,

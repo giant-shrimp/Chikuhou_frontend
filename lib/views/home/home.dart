@@ -96,6 +96,8 @@ class HomeScreen extends HookConsumerWidget {
         padding: const EdgeInsets.only(bottom: 15.0), // 下からの余白を調整
         child: FloatingActionButton(
           onPressed: () {
+            print('現在のメソッド: $currentMethod');
+
             _showRouteSearchModal(
               context,
               ref,

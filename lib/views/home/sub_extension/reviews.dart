@@ -11,8 +11,32 @@ class ReviewsScreen extends StatelessWidget {
         title: Text(AppLocalizations.of(context)!.reviews),
         automaticallyImplyLeading: false,
       ),
-      body:
-      const Center(child: Text('口コミ画面', style: TextStyle(fontSize: 32.0))),
+      body: Container(
+          color: Colors.blue.shade50,
+          child: Center(
+            child: Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                color: const Color(0x00000000),
+                border: Border.all(
+                  color: Colors.blue,
+                  width: 10.0,
+                ),
+                borderRadius: BorderRadius.circular(32.0),
+              ),
+               child: const Center(  // 文字を中央に配置
+                child: Text(
+                  'サンプル文字',  // 表示したい文字
+                  style: TextStyle(
+                    fontSize: 24,  // フォントサイズ
+                    color: Colors.black,  // 文字色
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
     );
   }
 }
