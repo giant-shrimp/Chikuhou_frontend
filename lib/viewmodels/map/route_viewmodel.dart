@@ -101,6 +101,7 @@ class RouteViewModel extends ChangeNotifier {
     String origin,
     String destination,
     String apiKey,
+    String currentMethod,
   ) async {
     // 複数ルートを取得
     final multipleRoutes =
@@ -116,9 +117,7 @@ class RouteViewModel extends ChangeNotifier {
     // 勾配計算
     final gradientCalculator = GradientCalculator();
     final leastGradientRoute = gradientCalculator.findLeastGradientRoute(
-      multipleRoutes,
-      elevationsList,
-    );
+        multipleRoutes, elevationsList, currentMethod);
 
     print("最も勾配が緩やかなルートを選択しました。");
     return leastGradientRoute;

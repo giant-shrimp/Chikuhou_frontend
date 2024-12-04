@@ -3,8 +3,8 @@ import 'dart:math';
 
 class GradientCalculator {
   /// 勾配を計算し、最も緩いルートを返す
-  Map<String, dynamic> findLeastGradientRoute(
-      List<Map<String, dynamic>> routes, List<List<double>> elevationsList) {
+  Map<String, dynamic> findLeastGradientRoute(List<Map<String, dynamic>> routes,
+      List<List<double>> elevationsList, method) {
     if (routes.isEmpty || elevationsList.isEmpty) {
       throw Exception("ルートまたは高度データがありません。");
     }
