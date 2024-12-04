@@ -58,7 +58,7 @@ class GradientCalculator {
           j++) {
         final elevationDiff = elevations[j + 1] - elevations[j];
         if (elevationDiff != 0) {
-          totalGradient += (distance * 100 / elevationDiff).abs();
+          totalGradient += (elevationDiff / distance * 100).abs();
         }
       }
 

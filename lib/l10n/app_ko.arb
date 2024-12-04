@@ -1,6 +1,5 @@
 {
   "@@locale": "ko",
-
   "menu": "메뉴",
   "home": "홈",
   "language": "언어",
@@ -25,13 +24,11 @@
   "calorie_count": "칼로리 계산",
   "faq": "자주 묻는 질문",
   "app_version": "앱 버전",
-
   "swap": "계정 전환",
   "sign_out": "로그아웃",
   "sign_out_confirmation": "로그아웃 확인",
   "are_you_sure_sign_out": "로그아웃하시겠습니까?",
   "cancel": "취소",
-
   "sign_in": "로그인",
   "sign_in_error": "이메일 또는 비밀번호가 올바르지. 다시 시도해 주세요.",
   "ok": "이해",
@@ -43,16 +40,13 @@
   "change_password": "비밀번호 변경",
   "change_password_success": "비밀번호가 변경되었습니다.",
   "change_password_error": "비밀번호 변경에 실패했습니다.\n다시 시도해 주세요.",
-
   "sign_up": "신규 등록",
   "sign_up_error": "비밀번호가 틀렸습니다.\n다시 시도해 주세요.",
-
   "multiple_route_search": "다중 경로 검색",
   "route_search": "경로 검색",
   "number_of_routes_being_acquired": "획득 중인 경로 수",
   "departure_point": "출발지",
   "destination": "목적지",
-
   "simple_gradient_calculation": "간단한 그래디언트 계산",
   "quadrature_by_pieces": "구분 구적법",
   "linear_calculations": "선형 계산",
@@ -62,19 +56,16 @@
   "fourier_transform": "푸리에 변환",
   "helmholtz_decomposition": "헬름홀츠 분해",
   "riemannian_metric": "리만 계량",
-
   "formula": "수식",
   "overview": "개요",
   "compatible_types": "궁합이 좋은 타입",
   "advantages": "이점",
   "disadvantages": "불리",
   "confirm": "결정",
-
   "walker": "보행자",
   "runner": "러너",
   "senior": "노인",
   "bike": "자전거",
   "wheelchair": "휠체어",
   "stroller": "유모차"
-
 }

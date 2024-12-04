@@ -43,6 +43,8 @@ class HomeScreen extends HookConsumerWidget {
     final originController = TextEditingController();
     final destinationController = TextEditingController();
     final currentMethod = ref.watch(methodProvider);
+    String apiKey = dotenv.env['API_KEY']!;
+    final routeViewModel = RouteViewModel(apiKey: apiKey);
 
     return Scaffold(
       appBar: AppBar(
@@ -74,7 +76,8 @@ class HomeScreen extends HookConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     LinearProgressIndicator(
-                      value: loadingRoutesCount.value / 20, // 最大20ルートを基準
+                      value: loadingRoutesCount.value /
+                          (routeViewModel.maxRoutes ?? 20),
                       backgroundColor: Colors.grey[200],
                       color: Colors.deepPurple,
                     ),
