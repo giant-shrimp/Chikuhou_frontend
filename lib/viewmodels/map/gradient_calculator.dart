@@ -256,15 +256,61 @@ class GradientCalculator {
     List<Map<String, dynamic>> routes,
     List<List<double>> elevationsList,
   ) {
+    const double earthRadius = 6371000.0; // 地球の半径 (メートル)
     Map<String, dynamic>? leastGradientRoute;
+    double minAverageTheta = double.infinity;
 
     for (int i = 0; i < routes.length; i++) {
       final route = routes[i];
       final elevations = elevationsList[i];
       final polyline = decodePolyline(route['overview_polyline']['points']);
+
+      double totalTheta = 0.0;
+      int segmentCount = 0;
+
+      for (int j = 0;
+          j < polyline.length - 1 && j < elevations.length - 1;
+          j++) {
+        final LatLng point1 = polyline[j];
+        final LatLng point2 = polyline[j + 1];
+
+        // 1. 緯度・経度をラジアンに変換
+        final double lat1 = point1.latitude * pi / 180.0;
+        final double lon1 = point1.longitude * pi / 180.0;
+        final double lat2 = point2.latitude * pi / 180.0;
+        final double lon2 = point2.longitude * pi / 180.0;
+
+        // 2. ハヴァーサイン式で水平距離を計算
+        final double dLat = lat2 - lat1;
+        final double dLon = lon2 - lon1;
+
+        final double a = pow(sin(dLat / 2), 2) +
+            cos(lat1) * cos(lat2) * pow(sin(dLon / 2), 2);
+        final double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+        final double horizontalDistance = earthRadius * c;
+
+        // 3. 高さ差を計算
+        final double elevationDiff = elevations[j + 1] - elevations[j];
+
+        // 4. 勾配角を計算 (θ = arctan(Δh / d))
+        if (horizontalDistance != 0) {
+          final double theta = atan(elevationDiff / horizontalDistance);
+          totalTheta += theta.abs(); // 絶対値を取る
+          segmentCount++;
+        }
+      }
+
+      // 平均勾配角を計算
+      final double averageTheta =
+          segmentCount > 0 ? totalTheta / segmentCount : double.infinity;
+
+      // 最小の平均勾配角を持つルートを更新
+      if (averageTheta < minAverageTheta) {
+        minAverageTheta = averageTheta;
+        leastGradientRoute = route;
+      }
     }
 
-    // null チェックをループ外で行う
     if (leastGradientRoute == null) {
       throw Exception("最適なルートが見つかりませんでした。");
     }
