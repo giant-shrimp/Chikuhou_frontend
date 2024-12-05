@@ -81,14 +81,36 @@ class GradientCalculator {
     List<List<double>> elevationsList,
   ) {
     Map<String, dynamic>? leastGradientRoute;
+    double minGradientSum = double.infinity;
 
     for (int i = 0; i < routes.length; i++) {
       final route = routes[i];
       final elevations = elevationsList[i];
       final polyline = decodePolyline(route['overview_polyline']['points']);
+
+      double totalGradient = 0.0;
+
+      // 各区間の勾配を計算し、面積として加算
+      for (int j = 0;
+          j < polyline.length - 1 && j < elevations.length - 1;
+          j++) {
+        // 区間の距離
+        const double distance = 50.0; // 50m間隔
+
+        // 高度差
+        final double elevationDiff = elevations[j + 1] - elevations[j];
+
+        // 勾配の面積 (区間長 × 勾配)
+        totalGradient += distance * elevationDiff.abs();
+      }
+
+      // 最小の勾配合計を持つルートを更新
+      if (totalGradient < minGradientSum) {
+        minGradientSum = totalGradient;
+        leastGradientRoute = route;
+      }
     }
 
-    // null チェックをループ外で行う
     if (leastGradientRoute == null) {
       throw Exception("最適なルートが見つかりませんでした。");
     }
