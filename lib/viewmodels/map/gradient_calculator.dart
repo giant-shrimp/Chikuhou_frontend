@@ -17,22 +17,16 @@ class GradientCalculator {
       case "method_3":
         return _gradientCalcMethod_3(routes, elevationsList);
       case "method_4":
-        // 未実装
         return _gradientCalcMethod_4(routes, elevationsList);
       case "method_5":
-        // 未実装
         return _gradientCalcMethod_5(routes, elevationsList);
       case "method_6":
-        // 未実装
         return _gradientCalcMethod_6(routes, elevationsList);
       case "method_7":
-        // 未実装
         return _gradientCalcMethod_7(routes, elevationsList);
       case "method_8":
-        // 未実装
         return _gradientCalcMethod_8(routes, elevationsList);
       case "method_9":
-        // 未実装
         return _gradientCalcMethod_9(routes, elevationsList);
       default:
         throw Exception("未知の計算方法: $method");
@@ -324,14 +318,24 @@ class GradientCalculator {
     List<List<double>> elevationsList,
   ) {
     Map<String, dynamic>? leastGradientRoute;
+    double minGradientSum = double.infinity;
 
     for (int i = 0; i < routes.length; i++) {
       final route = routes[i];
       final elevations = elevationsList[i];
       final polyline = decodePolyline(route['overview_polyline']['points']);
+
+      // シンプソン法の積分結果を計算
+      final double gradientSum =
+          _calculateSimpsonGradient(polyline, elevations);
+
+      // 勾配の合計が最小のルートを更新
+      if (gradientSum < minGradientSum) {
+        minGradientSum = gradientSum;
+        leastGradientRoute = route;
+      }
     }
 
-    // null チェックをループ外で行う
     if (leastGradientRoute == null) {
       throw Exception("最適なルートが見つかりませんでした。");
     }
@@ -432,6 +436,52 @@ class GradientCalculator {
     }
 
     return points;
+  }
+
+  /// シンプソン法による勾配の近似計算
+  double _calculateSimpsonGradient(
+      List<LatLng> polyline, List<double> elevations) {
+    if (polyline.length < 3 || elevations.length < 3) {
+      throw Exception("ポイントが不足しています。");
+    }
+
+    final int n = polyline.length - 1; // セグメント数 (偶数が必要)
+    if (n % 2 != 0) {
+      throw Exception("シンプソン法には偶数のセグメントが必要です。");
+    }
+
+    // 区間幅 h
+    final double h = _calculateTotalDistance(polyline) / n;
+
+    // 勾配関数 f(x) の計算
+    double f(int i) {
+      final double horizontalDistance =
+          _calculateDistance(polyline[i], polyline[i + 1]);
+      final double elevationDiff = elevations[i + 1] - elevations[i];
+      return (elevationDiff / horizontalDistance).abs();
+    }
+
+    // シンプソン法による積分
+    double result = f(0) + f(n);
+    for (int i = 1; i < n; i++) {
+      if (i % 2 == 0) {
+        result += 2 * f(i);
+      } else {
+        result += 4 * f(i);
+      }
+    }
+    result *= h / 3.0;
+
+    return result;
+  }
+
+  /// ポリライン全体の距離を計算
+  double _calculateTotalDistance(List<LatLng> polyline) {
+    double totalDistance = 0.0;
+    for (int i = 0; i < polyline.length - 1; i++) {
+      totalDistance += _calculateDistance(polyline[i], polyline[i + 1]);
+    }
+    return totalDistance;
   }
 
   /// 2点間の直線距離を計算
