@@ -349,14 +349,22 @@ class GradientCalculator {
     List<List<double>> elevationsList,
   ) {
     Map<String, dynamic>? leastGradientRoute;
+    double minSharpness = double.infinity;
 
     for (int i = 0; i < routes.length; i++) {
       final route = routes[i];
       final elevations = elevationsList[i];
-      final polyline = decodePolyline(route['overview_polyline']['points']);
+
+      // フーリエ変換を適用して急激な勾配を解析
+      final double sharpness = _analyzeGradientUsingFourier(elevations);
+
+      // 急激な変化が最も小さいルートを選択
+      if (sharpness < minSharpness) {
+        minSharpness = sharpness;
+        leastGradientRoute = route;
+      }
     }
 
-    // null チェックをループ外で行う
     if (leastGradientRoute == null) {
       throw Exception("最適なルートが見つかりませんでした。");
     }
@@ -503,4 +511,90 @@ class GradientCalculator {
   double _degreesToRadians(double degrees) {
     return degrees * pi / 180;
   }
+
+  /// フーリエ変換を用いた勾配解析
+  double _analyzeGradientUsingFourier(List<double> elevations) {
+    // 離散フーリエ変換 (FFT) を適用
+    final List<Complex> frequencyDomain = _fft(elevations);
+
+    // 高周波数成分の強度を計算
+    double highFrequencyEnergy = 0.0;
+    for (int i = frequencyDomain.length ~/ 4;
+        i < frequencyDomain.length ~/ 2;
+        i++) {
+      highFrequencyEnergy += frequencyDomain[i].magnitude;
+    }
+
+    return highFrequencyEnergy;
+  }
+
+  List<Complex> _fft(List<double> signal) {
+    int N = signal.length;
+
+    // 基底ケース: 信号長が1の場合
+    if (N == 1) {
+      return [Complex(signal[0], 0)];
+    }
+
+    // 信号長が2のべき乗でなければ例外をスロー
+    if (N % 2 != 0) {
+      throw Exception("信号長は2のべき乗である必要があります。");
+    }
+
+    // 偶数インデックスの要素と奇数インデックスの要素を分割
+    final List<double> evenSignal = List.generate(N ~/ 2, (i) => signal[i * 2]);
+    final List<double> oddSignal =
+        List.generate(N ~/ 2, (i) => signal[i * 2 + 1]);
+
+    // 再帰的に FFT を適用
+    final List<Complex> even = _fft(evenSignal);
+    final List<Complex> odd = _fft(oddSignal);
+
+    // FFT 計算の合成
+    List<Complex> result = List.filled(N, Complex(0, 0), growable: false);
+    for (int k = 0; k < N ~/ 2; k++) {
+      // Twiddle factor: e^(-2πik/N)
+      final Complex twiddleFactor = Complex.polar(1, -2 * pi * k / N);
+      final Complex t = twiddleFactor * odd[k];
+      result[k] = even[k] + t;
+      result[k + N ~/ 2] = even[k] - t;
+    }
+
+    return result;
+  }
+}
+
+class Complex {
+  final double real;
+  final double imaginary;
+
+  Complex(this.real, this.imaginary);
+
+  // 加算
+  Complex operator +(Complex other) =>
+      Complex(real + other.real, imaginary + other.imaginary);
+
+  // 減算
+  Complex operator -(Complex other) =>
+      Complex(real - other.real, imaginary - other.imaginary);
+
+  // 乗算
+  Complex operator *(Complex other) => Complex(
+        real * other.real - imaginary * other.imaginary,
+        real * other.imaginary + imaginary * other.real,
+      );
+
+  // スカラー乗算
+  Complex operator ^(double scalar) =>
+      Complex(real * scalar, imaginary * scalar);
+
+  // 極形式からの生成
+  static Complex polar(double magnitude, double angle) =>
+      Complex(magnitude * cos(angle), magnitude * sin(angle));
+
+  // 大きさ（絶対値）
+  double get magnitude => sqrt(real * real + imaginary * imaginary);
+
+  @override
+  String toString() => "($real + ${imaginary}i)";
 }
