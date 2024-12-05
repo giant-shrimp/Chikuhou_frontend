@@ -326,6 +326,11 @@ class GradientCalculator {
       final polyline = decodePolyline(route['overview_polyline']['points']);
 
       // シンプソン法の積分結果を計算
+      int n = polyline.length - 1; // セグメント数 (偶数が必要)
+      if (n % 2 != 0) {
+        return _gradientCalcMethod_1(routes, elevationsList);
+      }
+
       final double gradientSum =
           _calculateSimpsonGradient(polyline, elevations);
 
@@ -453,10 +458,10 @@ class GradientCalculator {
       throw Exception("ポイントが不足しています。");
     }
 
-    int n = polyline.length - 1; // セグメント数 (偶数が必要)
+    int n = polyline.length; // セグメント数 (偶数が必要)
     if (n % 2 != 0) {
       throw Exception("シンプソン法には偶数のセグメントが必要です。");
-    } else {}
+    }
 
     // 区間幅 h
     final double h = _calculateTotalDistance(polyline) / n;
@@ -531,14 +536,22 @@ class GradientCalculator {
   List<Complex> _fft(List<double> signal) {
     int N = signal.length;
 
+    // Nが2のべき乗でない場合、長さを調整
+    if ((N & (N - 1)) != 0) {
+      // 2のべき乗であるかをチェック
+      int nextPowerOf2 = 1;
+      while (nextPowerOf2 < N) {
+        nextPowerOf2 *= 2;
+      }
+      // 後ろに0を追加して2のべき乗に調整
+      signal = List<double>.from(signal)
+        ..addAll(List.filled(nextPowerOf2 - N, 0.0));
+      N = signal.length;
+    }
+
     // 基底ケース: 信号長が1の場合
     if (N == 1) {
       return [Complex(signal[0], 0)];
-    }
-
-    // 信号長が2のべき乗でなければ例外をスロー
-    if (N % 2 != 0) {
-      throw Exception("信号長は2のべき乗である必要があります。");
     }
 
     // 偶数インデックスの要素と奇数インデックスの要素を分割

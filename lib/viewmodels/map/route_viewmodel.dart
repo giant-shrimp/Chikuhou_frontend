@@ -37,15 +37,23 @@ class RouteViewModel extends ChangeNotifier {
       0.375,
       0.675,
       0.875,
-      0.875,
       0.1875,
       0.3125,
       0.4375,
       0.5875,
       0.7125,
       0.8125,
-      0.9375
+      0.9375,
     ];
+
+    //0.0625,
+    //0.1875,
+    //0.3125,
+    //0.4375,
+    //0.5636,
+    //0.6875,
+    //0.8125,
+    //0.9375
 
     while (multipleRoutes.length < maxRoutes) {
       bool newRouteAdded = false;
