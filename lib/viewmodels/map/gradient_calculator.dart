@@ -445,10 +445,10 @@ class GradientCalculator {
       throw Exception("ポイントが不足しています。");
     }
 
-    final int n = polyline.length - 1; // セグメント数 (偶数が必要)
+    int n = polyline.length - 1; // セグメント数 (偶数が必要)
     if (n % 2 != 0) {
       throw Exception("シンプソン法には偶数のセグメントが必要です。");
-    }
+    } else {}
 
     // 区間幅 h
     final double h = _calculateTotalDistance(polyline) / n;
