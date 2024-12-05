@@ -118,20 +118,59 @@ class GradientCalculator {
     return leastGradientRoute;
   }
 
-  /// 計算方法3: 線形計算
+  /// 計算方法3: 線形計算 (2点間の直線近似による勾配計算)
   Map<String, dynamic> _gradientCalcMethod_3(
     List<Map<String, dynamic>> routes,
     List<List<double>> elevationsList,
   ) {
     Map<String, dynamic>? leastGradientRoute;
+    double minAverageGradient = double.infinity;
 
     for (int i = 0; i < routes.length; i++) {
       final route = routes[i];
       final elevations = elevationsList[i];
       final polyline = decodePolyline(route['overview_polyline']['points']);
+
+      double totalGradient = 0.0;
+      int segmentCount = 0;
+
+      for (int j = 0;
+          j < polyline.length - 1 && j < elevations.length - 1;
+          j++) {
+        final LatLng point1 = polyline[j];
+        final LatLng point2 = polyline[j + 1];
+
+        // x, y, z座標を取得
+        final double x1 = point1.latitude;
+        final double y1 = point1.longitude;
+        final double z1 = elevations[j];
+
+        final double x2 = point2.latitude;
+        final double y2 = point2.longitude;
+        final double z2 = elevations[j + 1];
+
+        // 勾配の計算: m = (z2 - z1) / sqrt((x2 - x1)^2 + (y2 - y1)^2)
+        final double horizontalDistance = sqrt(
+          pow(x2 - x1, 2) + pow(y2 - y1, 2),
+        );
+        if (horizontalDistance == 0) continue; // 0除算を防ぐ
+
+        final double gradient = (z2 - z1) / horizontalDistance;
+        totalGradient += gradient.abs(); // 絶対値を加算
+        segmentCount++;
+      }
+
+      // 平均勾配を計算
+      final double averageGradient =
+          segmentCount > 0 ? totalGradient / segmentCount : double.infinity;
+
+      // 最小の平均勾配を持つルートを更新
+      if (averageGradient < minAverageGradient) {
+        minAverageGradient = averageGradient;
+        leastGradientRoute = route;
+      }
     }
 
-    // null チェックをループ外で行う
     if (leastGradientRoute == null) {
       throw Exception("最適なルートが見つかりませんでした。");
     }
