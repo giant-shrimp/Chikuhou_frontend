@@ -377,20 +377,36 @@ class GradientCalculator {
     return leastGradientRoute;
   }
 
-  ///  計算方法8: ヘルツホルム分解
+  /// 計算方法8: ヘルムホルツ分解
   Map<String, dynamic> _gradientCalcMethod_8(
     List<Map<String, dynamic>> routes,
     List<List<double>> elevationsList,
   ) {
     Map<String, dynamic>? leastGradientRoute;
+    double minPotentialGradient = double.infinity;
 
     for (int i = 0; i < routes.length; i++) {
       final route = routes[i];
       final elevations = elevationsList[i];
       final polyline = decodePolyline(route['overview_polyline']['points']);
+
+      // 勾配場を計算
+      final List<double> potentialField =
+          _calculatePotentialField(polyline, elevations);
+      final List<double> rotationalField =
+          _calculateRotationalField(polyline, elevations);
+
+      // ポテンシャル場の総エネルギーを計算（例として）
+      double potentialEnergy =
+          potentialField.fold(0, (sum, p) => sum + p.abs());
+
+      // 最小のポテンシャル場エネルギーを持つルートを選択
+      if (potentialEnergy < minPotentialGradient) {
+        minPotentialGradient = potentialEnergy;
+        leastGradientRoute = route;
+      }
     }
 
-    // null チェックをループ外で行う
     if (leastGradientRoute == null) {
       throw Exception("最適なルートが見つかりませんでした。");
     }
@@ -398,22 +414,32 @@ class GradientCalculator {
     return leastGradientRoute;
   }
 
-  ///  計算方法9: リーマン計量
+  /// 計算方法9: リーマン計量
   Map<String, dynamic> _gradientCalcMethod_9(
     List<Map<String, dynamic>> routes,
     List<List<double>> elevationsList,
   ) {
     Map<String, dynamic>? leastGradientRoute;
+    double minGeodesicDistance = double.infinity;
 
     for (int i = 0; i < routes.length; i++) {
       final route = routes[i];
       final elevations = elevationsList[i];
       final polyline = decodePolyline(route['overview_polyline']['points']);
+
+      // リーマン計量に基づいて測地線長を計算
+      final double geodesicDistance =
+          _calculateGeodesicDistance(polyline, elevations);
+
+      // 最小の測地線長を持つルートを選択
+      if (geodesicDistance < minGeodesicDistance) {
+        minGeodesicDistance = geodesicDistance;
+        leastGradientRoute = route;
+      }
     }
 
-    // null チェックをループ外で行う
     if (leastGradientRoute == null) {
-      throw Exception("最適なルートが見つかりませませんでした。");
+      throw Exception("最適なルートが見つかりませんでした。");
     }
 
     return leastGradientRoute;
@@ -610,4 +636,121 @@ class Complex {
 
   @override
   String toString() => "($real + ${imaginary}i)";
+}
+
+/// ポテンシャル場を計算
+List<double> _calculatePotentialField(
+    List<LatLng> polyline, List<double> elevations) {
+  List<double> potentialField = [];
+
+  for (int i = 0; i < polyline.length - 1; i++) {
+    final LatLng point1 = polyline[i];
+    final LatLng point2 = polyline[i + 1];
+
+    final double z1 = elevations[i];
+    final double z2 = elevations[i + 1];
+
+    // 高度差と距離を計算
+    final double distance = _calculateDistance(point1, point2);
+    if (distance != 0) {
+      // 勾配成分 (純粋なポテンシャル場)
+      potentialField.add((z2 - z1) / distance);
+    }
+  }
+
+  return potentialField;
+}
+
+/// 回転場を計算
+List<double> _calculateRotationalField(
+    List<LatLng> polyline, List<double> elevations) {
+  List<double> rotationalField = [];
+
+  for (int i = 0; i < polyline.length - 1; i++) {
+    final LatLng point1 = polyline[i];
+    final LatLng point2 = polyline[i + 1];
+
+    final double z1 = elevations[i];
+    final double z2 = elevations[i + 1];
+
+    // 高度差と距離を計算
+    final double distance = _calculateDistance(point1, point2);
+    if (distance != 0) {
+      // 回転成分（例: 直交方向の擬似成分を生成）
+      rotationalField.add(((z2 - z1) % distance).abs());
+    }
+  }
+
+  return rotationalField;
+}
+
+/// 距離計算
+double _calculateDistance(LatLng start, LatLng end) {
+  const double earthRadius = 6371000; // メートル
+  final double dLat = _degreesToRadians(end.latitude - start.latitude);
+  final double dLng = _degreesToRadians(end.longitude - start.longitude);
+
+  final double a = sin(dLat / 2) * sin(dLat / 2) +
+      cos(_degreesToRadians(start.latitude)) *
+          cos(_degreesToRadians(end.latitude)) *
+          sin(dLng / 2) *
+          sin(dLng / 2);
+  final double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+  return earthRadius * c;
+}
+
+double _degreesToRadians(double degrees) {
+  return degrees * pi / 180;
+}
+
+/// リーマン計量に基づいて測地線長を計算
+double _calculateGeodesicDistance(
+    List<LatLng> polyline, List<double> elevations) {
+  double totalGeodesicDistance = 0.0;
+
+  for (int i = 0; i < polyline.length - 1; i++) {
+    final LatLng point1 = polyline[i];
+    final LatLng point2 = polyline[i + 1];
+
+    final double z1 = elevations[i];
+    final double z2 = elevations[i + 1];
+
+    // 位置座標の変化量 (dx, dy, dz)
+    final double dx = _calculateDistanceInX(point1, point2);
+    final double dy = _calculateDistanceInY(point1, point2);
+    final double dz = z2 - z1;
+
+    // リーマン計量テンソルを適用
+    final double dsSquared = _applyRiemannMetric(dx, dy, dz);
+    totalGeodesicDistance += sqrt(dsSquared); // 微小距離 ds を加算
+  }
+
+  return totalGeodesicDistance;
+}
+
+/// x方向の距離を計算
+double _calculateDistanceInX(LatLng point1, LatLng point2) {
+  const double earthRadius = 6371000.0; // メートル
+  final double dLat = _degreesToRadians(point2.latitude - point1.latitude);
+  return earthRadius * dLat;
+}
+
+/// y方向の距離を計算
+double _calculateDistanceInY(LatLng point1, LatLng point2) {
+  const double earthRadius = 6371000.0; // メートル
+  final double dLng = _degreesToRadians(point2.longitude - point1.longitude) *
+      cos(_degreesToRadians((point1.latitude + point2.latitude) / 2.0));
+  return earthRadius * dLng;
+}
+
+/// リーマン計量テンソルを適用
+double _applyRiemannMetric(double dx, double dy, double dz) {
+  // g_ij(x): リーマン計量テンソル (単純化のため対角行列を使用)
+  const double gxx = 1.0; // x方向の計量係数
+  const double gyy = 1.0; // y方向の計量係数
+  const double gzz = 1.0; // z方向の計量係数
+
+  // ds^2 = g_xx * dx^2 + g_yy * dy^2 + g_zz * dz^2
+  return gxx * dx * dx + gyy * dy * dy + gzz * dz * dz;
 }
