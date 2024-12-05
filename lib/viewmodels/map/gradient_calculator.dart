@@ -118,7 +118,7 @@ class GradientCalculator {
     return leastGradientRoute;
   }
 
-  /// 計算方法3: 線形計算 (2点間の直線近似による勾配計算)
+  /// 計算方法3: 線形計算
   Map<String, dynamic> _gradientCalcMethod_3(
     List<Map<String, dynamic>> routes,
     List<List<double>> elevationsList,
@@ -184,14 +184,66 @@ class GradientCalculator {
     List<List<double>> elevationsList,
   ) {
     Map<String, dynamic>? leastGradientRoute;
+    double minAverageTheta = double.infinity;
 
     for (int i = 0; i < routes.length; i++) {
       final route = routes[i];
       final elevations = elevationsList[i];
       final polyline = decodePolyline(route['overview_polyline']['points']);
+
+      double totalTheta = 0.0;
+      int segmentCount = 0;
+
+      for (int j = 0;
+          j < polyline.length - 1 && j < elevations.length - 1;
+          j++) {
+        final LatLng point1 = polyline[j];
+        final LatLng point2 = polyline[j + 1];
+
+        // 1. 点1と点2の座標を取得
+        final double x1 = point1.latitude;
+        final double y1 = point1.longitude;
+        final double z1 = elevations[j];
+
+        final double x2 = point2.latitude;
+        final double y2 = point2.longitude;
+        final double z2 = elevations[j + 1];
+
+        // 2. ベクトルAとBを定義
+        final double ax = x2 - x1;
+        final double ay = y2 - y1;
+        final double az = z2 - z1;
+
+        final double bx = x2 - x1;
+        final double by = y2 - y1;
+        final double bz = 0.0; // 水平方向
+
+        // 3. ベクトルの内積 |A・B|
+        final double dotProduct = (ax * bx) + (ay * by) + (az * bz);
+
+        // 4. ベクトルの大きさ |A| と |B|
+        final double magnitudeA = sqrt(pow(ax, 2) + pow(ay, 2) + pow(az, 2));
+        final double magnitudeB = sqrt(pow(bx, 2) + pow(by, 2));
+
+        if (magnitudeA == 0 || magnitudeB == 0) continue; // 0除算を防ぐ
+
+        // 5. 勾配角 θ を計算 (θ = arctan(|A・B| / (|A||B|)))
+        final double theta = atan(dotProduct / (magnitudeA * magnitudeB));
+        totalTheta += theta.abs();
+        segmentCount++;
+      }
+
+      // 平均勾配角を計算
+      final double averageTheta =
+          segmentCount > 0 ? totalTheta / segmentCount : double.infinity;
+
+      // 最小の平均勾配角を持つルートを更新
+      if (averageTheta < minAverageTheta) {
+        minAverageTheta = averageTheta;
+        leastGradientRoute = route;
+      }
     }
 
-    // null チェックをループ外で行う
     if (leastGradientRoute == null) {
       throw Exception("最適なルートが見つかりませんでした。");
     }
