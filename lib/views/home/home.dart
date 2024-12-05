@@ -309,6 +309,7 @@ class HomeScreen extends HookConsumerWidget {
                                     leastGradientBounds, 50),
                               );
                             } catch (error) {
+                              print("変更");
                               print("仮push");
                               print('ルート取得エラー: $error');
                             } finally {
