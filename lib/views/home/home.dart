@@ -16,6 +16,7 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+  
 
   @override
   Widget build(BuildContext context) {
@@ -305,6 +306,7 @@ class HomeScreen extends HookConsumerWidget {
                                     leastGradientBounds, 50),
                               );
                             } catch (error) {
+                              print("仮push");
                               print('ルート取得エラー: $error');
                             } finally {
                               isLoading.value = false;
