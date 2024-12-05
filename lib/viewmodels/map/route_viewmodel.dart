@@ -8,7 +8,9 @@ import 'gradient_calculator.dart';
 class RouteViewModel extends ChangeNotifier {
   final String apiKey;
 
-  RouteViewModel({required this.apiKey});
+  final int maxRoutes;
+
+  RouteViewModel({required this.apiKey, this.maxRoutes = 20});
 
   Future<List<Map<String, dynamic>>> fetchMultipleRoutes(
     String origin,
