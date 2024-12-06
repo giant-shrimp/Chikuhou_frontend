@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../widgets/common/custom_calculation_modal.dart';
+import 'settings_status.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 
 // 現在のステータスを管理するためのProvider
 final methodProvider = StateProvider<String>((ref) => 'method_1'); //初期値:単純勾配計算
@@ -14,6 +17,24 @@ class SettingsCalculationMethod extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentMethod = ref.watch(methodProvider);
+    final currentStatus = ref.watch(statusProvider);
+
+    // 点滅を管理する状態
+    final isRed = useState(true);
+
+    // タイマーで点滅を制御
+    useEffect(() {
+      final timer = Timer.periodic(const Duration(milliseconds: 700), (timer) {
+        isRed.value = !isRed.value;
+      });
+
+      // 5秒後にタイマー停止
+      Future.delayed(const Duration(seconds: 5), () {
+        timer.cancel();
+      });
+
+      return () => timer.cancel();
+    }, []);
 
     // ステータス変更時にログを出力
     ref.listen<String>(
@@ -36,8 +57,18 @@ class SettingsCalculationMethod extends HookConsumerWidget {
             tiles: <SettingsTile>[
               SettingsTile(
                 leading: const Icon(Icons.filter_1),
-                title: Text(
-                    AppLocalizations.of(context)!.simple_gradient_calculation),
+                title: AnimatedDefaultTextStyle(
+                  style: TextStyle(
+                    color: ((currentStatus == 'runner' || currentStatus == 'bike') && isRed.value)
+                        ? Colors.red
+                        : Colors.black,
+                    fontSize: 16,
+                  ),
+                  duration: const Duration(milliseconds: 500),
+                  child: Text(
+                    AppLocalizations.of(context)!.simple_gradient_calculation,
+                  ),
+                ),
                 description: const Text(''),
                 trailing: currentMethod == 'method_1'
                     ? const Icon(Icons.done,
@@ -79,7 +110,18 @@ class SettingsCalculationMethod extends HookConsumerWidget {
               ),
               SettingsTile(
                 leading: const Icon(Icons.filter_2),
-                title: Text(AppLocalizations.of(context)!.quadrature_by_pieces),
+                title: AnimatedDefaultTextStyle(
+                  style: TextStyle(
+                    color: ((currentStatus == 'senior' || currentStatus == 'bike' || currentStatus == 'stroller' || currentStatus == 'wheelchair') && isRed.value)
+                        ? Colors.red
+                        : Colors.black,
+                    fontSize: 16,
+                  ),
+                  duration: const Duration(milliseconds: 500),
+                  child: Text(
+                    AppLocalizations.of(context)!.quadrature_by_pieces,
+                  ),
+                ),
                 description: const Text(''),
                 trailing: currentMethod == 'method_2'
                     ? const Icon(Icons.done,
@@ -116,13 +158,13 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                         'label': AppLocalizations.of(context)!.bike
                       },
                       {
+                        'icon': Icons.accessible_forward_sharp,
+                        'label': AppLocalizations.of(context)!.wheelchair
+                      },
+                      {
                         'icon': Icons.child_friendly_sharp,
                         'label': AppLocalizations.of(context)!.stroller
                       },
-                      {
-                        'icon': Icons.accessible_forward_sharp,
-                        'label': AppLocalizations.of(context)!.wheelchair
-                      }
                     ],
                     advantages: '- ポイントごとの角度を返せるので、細かな地形の勾配変化に対応できる',
                     disadvantages: '- 曲線的な地形や不規則なルートの影響を正確に反映するには限界がある',
@@ -132,7 +174,18 @@ class SettingsCalculationMethod extends HookConsumerWidget {
               ),
               SettingsTile(
                 leading: const Icon(Icons.filter_3),
-                title: Text(AppLocalizations.of(context)!.linear_calculations),
+                title: AnimatedDefaultTextStyle(
+                  style: TextStyle(
+                    color: ((currentStatus == 'walker' || currentStatus == 'runner' || currentStatus == 'traveler') && isRed.value)
+                        ? Colors.red
+                        : Colors.black,
+                    fontSize: 16,
+                  ),
+                  duration: const Duration(milliseconds: 500),
+                  child: Text(
+                    AppLocalizations.of(context)!.linear_calculations,
+                  ),
+                ),
                 description: const Text(''),
                 trailing: currentMethod == 'method_3'
                     ? const Icon(Icons.done,
@@ -165,6 +218,10 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                       {
                         'icon': Icons.directions_run_sharp,
                         'label': AppLocalizations.of(context)!.runner
+                      },
+                      {
+                        'icon': Icons.luggage_outlined,
+                        'label': AppLocalizations.of(context)!.traveler
                       }
                     ],
                     advantages: '- 計算がシンプルで高速\n- 正確な角度を得られるため、坂道の傾斜を精密に解析可能',
@@ -176,7 +233,18 @@ class SettingsCalculationMethod extends HookConsumerWidget {
               ),
               SettingsTile(
                 leading: const Icon(Icons.filter_4),
-                title: Text(AppLocalizations.of(context)!.vector_product),
+                title: AnimatedDefaultTextStyle(
+                  style: TextStyle(
+                    color: ((currentStatus == 'bike' || currentStatus == 'wheelchair') && isRed.value)
+                        ? Colors.red
+                        : Colors.black,
+                    fontSize: 16,
+                  ),
+                  duration: const Duration(milliseconds: 500),
+                  child: Text(
+                    AppLocalizations.of(context)!.vector_product,
+                  ),
+                ),
                 description: const Text(''),
                 trailing: currentMethod == 'method_4'
                     ? const Icon(Icons.done,
@@ -237,7 +305,18 @@ class SettingsCalculationMethod extends HookConsumerWidget {
               ),
               SettingsTile(
                 leading: const Icon(Icons.filter_5),
-                title: Text(AppLocalizations.of(context)!.taylor_expansion),
+                title: AnimatedDefaultTextStyle(
+                  style: TextStyle(
+                    color: ((currentStatus == 'runner' || currentStatus == 'senior' || currentStatus == 'bike') && isRed.value)
+                        ? Colors.red
+                        : Colors.black,
+                    fontSize: 16,
+                  ),
+                  duration: const Duration(milliseconds: 500),
+                  child: Text(
+                    AppLocalizations.of(context)!.taylor_expansion,
+                  ),
+                ),
                 description: const Text(''),
                 trailing: currentMethod == 'method_5'
                     ? const Icon(Icons.done,
@@ -293,7 +372,18 @@ class SettingsCalculationMethod extends HookConsumerWidget {
               ),
               SettingsTile(
                 leading: const Icon(Icons.filter_6),
-                title: Text(AppLocalizations.of(context)!.simpson_act),
+                title: AnimatedDefaultTextStyle(
+                  style: TextStyle(
+                    color: ((currentStatus == 'senior' || currentStatus == 'bike' || currentStatus == 'stroller') && isRed.value)
+                        ? Colors.red
+                        : Colors.black,
+                    fontSize: 16,
+                  ),
+                  duration: const Duration(milliseconds: 500),
+                  child: Text(
+                    AppLocalizations.of(context)!.simpson_act,
+                  ),
+                ),
                 description: const Text(''),
                 trailing: currentMethod == 'method_6'
                     ? const Icon(Icons.done,
@@ -344,7 +434,18 @@ class SettingsCalculationMethod extends HookConsumerWidget {
               ),
               SettingsTile(
                 leading: const Icon(Icons.filter_7),
-                title: Text(AppLocalizations.of(context)!.fourier_transform),
+                title: AnimatedDefaultTextStyle(
+                  style: TextStyle(
+                    color: ((currentStatus == 'runner' || currentStatus == 'bike') && isRed.value)
+                        ? Colors.red
+                        : Colors.black,
+                    fontSize: 16,
+                  ),
+                  duration: const Duration(milliseconds: 500),
+                  child: Text(
+                    AppLocalizations.of(context)!.fourier_transform,
+                  ),
+                ),
                 description: const Text(''),
                 trailing: currentMethod == 'method_7'
                     ? const Icon(Icons.done,
@@ -390,8 +491,18 @@ class SettingsCalculationMethod extends HookConsumerWidget {
               ),
               SettingsTile(
                 leading: const Icon(Icons.filter_8),
-                title:
-                    Text(AppLocalizations.of(context)!.helmholtz_decomposition),
+                title: AnimatedDefaultTextStyle(
+                  style: TextStyle(
+                    color: ((currentStatus == 'walker' || currentStatus == 'runner' || currentStatus == 'bike' || currentStatus == 'traveler') && isRed.value)
+                        ? Colors.red
+                        : Colors.black,
+                    fontSize: 16,
+                  ),
+                  duration: const Duration(milliseconds: 500),
+                  child: Text(
+                    AppLocalizations.of(context)!.helmholtz_decomposition,
+                  ),
+                ),
                 description: const Text(''),
                 trailing: currentMethod == 'method_8'
                     ? const Icon(Icons.done,
@@ -428,6 +539,10 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                       {
                         'icon': Icons.directions_bike_sharp,
                         'label': AppLocalizations.of(context)!.bike
+                      },
+                      {
+                        'icon': Icons.luggage_outlined,
+                        'label': AppLocalizations.of(context)!.traveler
                       }
                     ],
                     advantages:
@@ -440,7 +555,18 @@ class SettingsCalculationMethod extends HookConsumerWidget {
               ),
               SettingsTile(
                 leading: const Icon(Icons.filter_9),
-                title: Text(AppLocalizations.of(context)!.riemannian_metric),
+                title: AnimatedDefaultTextStyle(
+                  style: TextStyle(
+                    color: ((currentStatus == 'senior' || currentStatus == 'stroller' || currentStatus == 'wheelchair') && isRed.value)
+                        ? Colors.red
+                        : Colors.black,
+                    fontSize: 16,
+                  ),
+                  duration: const Duration(milliseconds: 500),
+                  child: Text(
+                    AppLocalizations.of(context)!.riemannian_metric,
+                  ),
+                ),
                 description: const Text(''),
                 trailing: currentMethod == 'method_9'
                     ? const Icon(Icons.done,
@@ -465,12 +591,12 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                         'label': AppLocalizations.of(context)!.senior
                       },
                       {
-                        'icon': Icons.child_friendly_sharp,
-                        'label': AppLocalizations.of(context)!.stroller
-                      },
-                      {
                         'icon': Icons.accessible_forward_sharp,
                         'label': AppLocalizations.of(context)!.wheelchair
+                      },
+                      {
+                        'icon': Icons.child_friendly_sharp,
+                        'label': AppLocalizations.of(context)!.stroller
                       }
                     ],
                     advantages:
