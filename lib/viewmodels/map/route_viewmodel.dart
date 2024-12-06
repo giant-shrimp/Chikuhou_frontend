@@ -22,11 +22,6 @@ class RouteViewModel extends ChangeNotifier {
     final originalPolyline =
         decodePolyline(originalRoute['overview_polyline']['points']);
 
-    final double originalDistance = _calculateTotalDistance(originalPolyline);
-
-    // 許容距離範囲の設定 (±50%の範囲)
-    final double distanceToleranceMin = originalDistance * 0.5;
-
     List<Map<String, dynamic>> multipleRoutes = [originalRoute];
 
     List<double> fractions = [
@@ -45,15 +40,6 @@ class RouteViewModel extends ChangeNotifier {
       0.8125,
       0.9375,
     ];
-
-    //0.0625,
-    //0.1875,
-    //0.3125,
-    //0.4375,
-    //0.5636,
-    //0.6875,
-    //0.8125,
-    //0.9375
 
     while (multipleRoutes.length < maxRoutes) {
       bool newRouteAdded = false;
@@ -78,12 +64,10 @@ class RouteViewModel extends ChangeNotifier {
             ...alternativePolyline
           ];
 
-          // 4. 距離範囲や重複チェック
-          final combinedDistance = _calculateTotalDistance(combinedPolyline);
-          if (combinedDistance >= distanceToleranceMin &&
-              !multipleRoutes.any((r) =>
-                  r['overview_polyline']['points'] ==
-                  route['overview_polyline']['points'])) {
+          // 4. 重複チェック
+          if (!multipleRoutes.any((r) =>
+              r['overview_polyline']['points'] ==
+              route['overview_polyline']['points'])) {
             // 5. 結合したポリラインを格納
             multipleRoutes.add({
               'overview_polyline': {
@@ -112,30 +96,103 @@ class RouteViewModel extends ChangeNotifier {
     String destination,
     String apiKey,
     String currentMethod,
+    String currentStatus,
   ) async {
-    // 複数ルートを取得
-    final multipleRoutes =
-        await fetchMultipleRoutes(origin, destination, apiKey);
-    final List<List<double>> elevationsList = [];
+    try {
+      print('=== fetchLeastGradientRoute 開始 ===');
+      print('選択されたステータス: $currentStatus');
+      print('出発地: $origin, 目的地: $destination');
 
-    for (final route in multipleRoutes) {
-      final polyline = decodePolyline(route['overview_polyline']['points']);
-      final elevations = await fetchElevationsForPolyline(polyline);
-      elevationsList.add(elevations);
+      // 1. 複数ルートを取得
+      print('複数ルートを取得中...');
+      final multipleRoutes =
+          await fetchMultipleRoutes(origin, destination, apiKey);
+      print('複数ルート取得完了。ルート数: ${multipleRoutes.length}');
+
+      final List<List<double>> elevationsList = [];
+
+      // オリジナルルートを取得
+      final originalRoute = multipleRoutes[0];
+      final originalDistance = _calculateTotalDistance(
+          decodePolyline(originalRoute['overview_polyline']['points']));
+      final originalDuration = originalRoute['legs']
+          .fold<double>(0.0, (sum, leg) => sum + leg['duration']['value']);
+
+      print('オリジナルルートの情報: 距離=$originalDistance, 時間=$originalDuration 秒');
+
+      for (final route in multipleRoutes) {
+        try {
+          final polyline = decodePolyline(route['overview_polyline']['points']);
+          print('ルートのポリラインをデコードしました: $polyline');
+          final elevations = await fetchElevationsForPolyline(polyline);
+          elevationsList.add(elevations);
+          print('高度データを取得しました: $elevations');
+        } catch (e) {
+          print('高度データ取得エラー: $e');
+        }
+      }
+
+      // 2. 条件に応じたルートフィルタリング
+      print('条件に基づきルートをフィルタリング中...');
+      List<Map<String, dynamic>> filteredRoutes = _filterRoutesByUserType(
+        currentStatus,
+        multipleRoutes,
+        originalDistance,
+        originalDuration,
+      );
+      print('フィルタリング後のルート数: ${filteredRoutes.length}');
+
+      // 3. 勾配計算またはルート選定
+      print('ステータスに応じたルート選定を実行中...');
+      switch (currentStatus) {
+        case 'runner':
+          print('ランナー: 最も勾配が強いルートを選定中');
+          final selectedRoute = _selectRouteWithHighestGradient(filteredRoutes);
+          print('選定されたルート: $selectedRoute');
+          return selectedRoute;
+
+        case 'traveler':
+          print('トラベラー: 最短距離のルートを選定中');
+          final selectedRoute = _selectShortestRoute(filteredRoutes);
+          print('選定されたルート: $selectedRoute');
+          return selectedRoute;
+
+        case 'biker':
+          print('バイカー: APIから新しいルートを取得中 (mode=walking)');
+          final bikerRoute =
+              await _fetchBikerRoute(origin, destination, apiKey);
+          print('バイカー用ルート取得完了: $bikerRoute');
+          return bikerRoute;
+
+        default:
+          print('デフォルト処理: 勾配が最も緩やかなルートを選定中');
+          final List<List<double>> elevationsList = await Future.wait(
+            filteredRoutes.map((route) async {
+              final polyline =
+                  decodePolyline(route['overview_polyline']['points']);
+              return await fetchElevationsForPolyline(polyline);
+            }),
+          );
+
+          final gradientCalculator = GradientCalculator();
+          final leastGradientRoute = gradientCalculator.findLeastGradientRoute(
+            filteredRoutes,
+            elevationsList,
+            currentStatus,
+          );
+          print('選定された最も緩やかなルート: $leastGradientRoute');
+          return leastGradientRoute;
+      }
+    } catch (e, stackTrace) {
+      print('エラー発生: $e');
+      print('スタックトレース: $stackTrace');
+      throw Exception('ルート計算中にエラーが発生しました: $e');
     }
-
-    // 勾配計算
-    final gradientCalculator = GradientCalculator();
-    final leastGradientRoute = gradientCalculator.findLeastGradientRoute(
-        multipleRoutes, elevationsList, currentMethod);
-
-    print("最も勾配が緩やかなルートを選択しました。");
-    return leastGradientRoute;
   }
 
   Future<LatLng> fetchCoordinatesFromAddress(String address) async {
     final url =
-        'https://maps.googleapis.com/maps/api/geocode/json?address=$address&key=$apiKey';
+        'https://maps.googleapis.com/maps/api/geocode/json?address=$address&mode=walking&key=$apiKey';
     final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
@@ -181,7 +238,7 @@ class RouteViewModel extends ChangeNotifier {
     final locations =
         points.map((p) => '${p.latitude},${p.longitude}').join('|');
     final url =
-        'https://maps.googleapis.com/maps/api/elevation/json?locations=$locations&key=$apiKey';
+        'https://maps.googleapis.com/maps/api/elevation/json?locations=$locations&mode=walking&key=$apiKey';
     final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
@@ -260,7 +317,7 @@ class RouteViewModel extends ChangeNotifier {
   Future<Map<String, dynamic>> _fetchOriginalRoute(
       String origin, String destination) async {
     final url =
-        'https://maps.googleapis.com/maps/api/directions/json?origin=$origin&destination=$destination&key=$apiKey&alternatives=false';
+        'https://maps.googleapis.com/maps/api/directions/json?origin=$origin&destination=$destination&key=$apiKey&mode=walking&alternatives=false';
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -277,7 +334,7 @@ class RouteViewModel extends ChangeNotifier {
   Future<List<Map<String, dynamic>>> _fetchAlternativeRoutes(
       LatLng point, String destination) async {
     final url =
-        'https://maps.googleapis.com/maps/api/directions/json?origin=${point.latitude},${point.longitude}&destination=$destination&key=$apiKey&alternatives=true';
+        'https://maps.googleapis.com/maps/api/directions/json?origin=${point.latitude},${point.longitude}&destination=$destination&key=$apiKey&mode=walking&alternatives=true';
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -325,6 +382,141 @@ class RouteViewModel extends ChangeNotifier {
     }
 
     return points;
+  }
+
+  List<Map<String, dynamic>> _filterRoutesByUserType(
+    String userType,
+    List<Map<String, dynamic>> routes,
+    double originalDistance,
+    double originalDuration,
+  ) {
+    switch (userType) {
+      case 'walker':
+        return routes.where((route) {
+          final distance = _calculateTotalDistance(
+              decodePolyline(route['overview_polyline']['points']));
+          final duration = route['legs']
+              .fold<double>(0.0, (sum, leg) => sum + leg['duration']['value']);
+          return distance <= originalDistance * 1.3 &&
+              duration <= originalDuration * 1.3;
+        }).toList();
+
+      case 'stroller':
+        return routes.where((route) {
+          final distance = _calculateTotalDistance(
+              decodePolyline(route['overview_polyline']['points']));
+          final duration = route['legs']
+              .fold<double>(0.0, (sum, leg) => sum + leg['duration']['value']);
+          return distance <= originalDistance * 1.7 &&
+              duration <= originalDuration * 1.7;
+        }).toList();
+
+      case 'Wheelchair':
+        // 車イスは条件なし、全ルート対象
+        return routes;
+
+      case 'senior':
+        return routes.where((route) {
+          final duration = route['legs']
+              .fold<double>(0.0, (sum, leg) => sum + leg['duration']['value']);
+          return duration <= originalDuration * 1.5;
+        }).toList();
+
+      default:
+        // その他の場合、全ルートを返す
+        return routes;
+    }
+  }
+
+  Map<String, dynamic> _selectShortestRoute(List<Map<String, dynamic>> routes) {
+    if (routes.isEmpty) {
+      throw Exception('ルートが見つかりませんでした');
+    }
+
+    // 最短距離のルートを見つける
+    return routes.reduce((shortest, current) {
+      final shortestDistance = _calculateTotalDistance(
+          decodePolyline(shortest['overview_polyline']['points']));
+      final currentDistance = _calculateTotalDistance(
+          decodePolyline(current['overview_polyline']['points']));
+
+      // 距離が短い方を選択
+      return currentDistance < shortestDistance ? current : shortest;
+    });
+  }
+
+  Map<String, dynamic> _selectRouteWithHighestGradient(
+      List<Map<String, dynamic>> routes) {
+    if (routes.isEmpty) {
+      throw Exception('ルートが見つかりませんでした');
+    }
+
+    // 最も勾配が強いルートを見つける
+    return routes.reduce((steepest, current) {
+      final steepestGradient = _calculateRouteGradient(
+          decodePolyline(steepest['overview_polyline']['points']));
+      final currentGradient = _calculateRouteGradient(
+          decodePolyline(current['overview_polyline']['points']));
+
+      // 勾配が強い方を選択
+      return currentGradient > steepestGradient ? current : steepest;
+    });
+  }
+
+  double _calculateRouteGradient(List<LatLng> polylinePoints) {
+    if (polylinePoints.length < 2) return 0.0;
+
+    double totalGradient = 0.0;
+
+    for (int i = 0; i < polylinePoints.length - 1; i++) {
+      final LatLng start = polylinePoints[i];
+      final LatLng end = polylinePoints[i + 1];
+
+      // 高度差（仮に `fetchElevationsForPolyline` で取得した高度データが必要）
+      final elevationDifference = _fetchElevationDifference(start, end);
+
+      // 距離差
+      final horizontalDistance = _calculateDistance(start, end);
+
+      if (horizontalDistance > 0) {
+        totalGradient += (elevationDifference / horizontalDistance);
+      }
+    }
+
+    // 平均勾配を返す
+    return totalGradient / (polylinePoints.length - 1);
+  }
+
+  double _fetchElevationDifference(LatLng start, LatLng end) {
+    // 仮のデータまたは実際の高度データを使う
+    final startElevation = _getElevationForPoint(start);
+    final endElevation = _getElevationForPoint(end);
+    return endElevation - startElevation;
+  }
+
+  double _getElevationForPoint(LatLng point) {
+    // 高度データを取得する必要がある場合、適切なロジックで処理
+    // 仮に 0.0 を返す
+    return 0.0;
+  }
+
+  Future<Map<String, dynamic>> _fetchBikerRoute(
+      String origin, String destination, String apiKey) async {
+    final url =
+        'https://maps.googleapis.com/maps/api/directions/json?origin=$origin&destination=$destination&key=$apiKey&mode=walking&alternatives=false';
+
+    final response = await http.get(Uri.parse(url));
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['routes'] != null && data['routes'].isNotEmpty) {
+        return data['routes'][0]; // 最初のルートを返す
+      } else {
+        throw Exception('自転車向けのルートが見つかりませんでした');
+      }
+    } else {
+      throw Exception('HTTPエラー: ${response.statusCode}');
+    }
   }
 }
 

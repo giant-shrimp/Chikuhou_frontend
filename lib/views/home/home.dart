@@ -9,6 +9,8 @@ import '../widgets/common/custom_button.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../settings/settings_calculation_method.dart';
 
+final currentStateProvider =
+    StateProvider<String>((ref) => 'walker'); // 初期ステータス
 void main() async {
   await dotenv.load(fileName: ".env"); // dotenvファイルをロード
   runApp(const MyApp());
@@ -42,6 +44,7 @@ class HomeScreen extends HookConsumerWidget {
     final loadingRoutesCount = useState(0);
     final originController = TextEditingController();
     final destinationController = TextEditingController();
+    final currentState = ref.watch(currentStateProvider);
     final currentMethod = ref.watch(methodProvider);
     String apiKey = dotenv.env['API_KEY']!;
     final routeViewModel = RouteViewModel(apiKey: apiKey);
@@ -111,6 +114,7 @@ class HomeScreen extends HookConsumerWidget {
               isLoading,
               loadingRoutesCount,
               currentMethod,
+              currentState,
             );
           },
           backgroundColor: Colors.white.withOpacity(0.8),
@@ -131,6 +135,7 @@ class HomeScreen extends HookConsumerWidget {
     ValueNotifier<bool> isLoading,
     ValueNotifier<int> loadingRoutesCount,
     String currentMethod,
+    String currentState,
   ) async {
     String apiKey = dotenv.env['API_KEY']!;
     final routeViewModel = RouteViewModel(apiKey: apiKey);
