@@ -157,8 +157,8 @@ class RouteViewModel extends ChangeNotifier {
           print('選定されたルート: $selectedRoute');
           return selectedRoute;
 
-        case 'biker':
-          print('バイカー: APIから新しいルートを取得中 (mode=walking)');
+        case 'bike':
+          print('自転車: APIから新しいルートを取得中');
           final bikerRoute =
               await _fetchBikerRoute(origin, destination, apiKey);
           print('バイカー用ルート取得完了: $bikerRoute');
