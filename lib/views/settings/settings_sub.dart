@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../config/providers/status_provider.dart';
@@ -6,12 +7,14 @@ import '../../config/providers/sub_provider.dart';
 import 'settings_status.dart';
 
 // 選択されたアイテムの状態を管理するプロバイダー
-final selectedItemProvider = StateNotifierProvider<SelectedItemNotifier, Map<String, dynamic>>(
-      (ref) => SelectedItemNotifier(),
+final selectedItemProvider =
+    StateNotifierProvider<SelectedItemNotifier, Map<String, dynamic>>(
+  (ref) => SelectedItemNotifier(),
 );
 
 class SelectedItemNotifier extends StateNotifier<Map<String, dynamic>> {
-  SelectedItemNotifier() : super({'icon': Icons.cloudy_snowing, 'label': '雨雲レーダー'});
+  SelectedItemNotifier()
+      : super({'icon': Icons.cloudy_snowing, 'label': '雨雲レーダー'});
 
   void selectItem(Map<String, dynamic> item) {
     state = item;
@@ -101,20 +104,19 @@ class DragDropContainer extends HookConsumerWidget {
       itemCount: items.length,
       itemBuilder: (context, index) {
         // ローカライズされたラベルを取得
-        final localizedLabel = _getLocalizedLabel(context, items[index]['label']);
+        final localizedLabel =
+            _getLocalizedLabel(context, items[index]['label']);
 
-        return GestureDetector(
-          onTap: () {
+        return DragItem(
+          icon: items[index]['icon'],
+          label: localizedLabel,
+          onSelect: () {
             // アイテムを選択
             ref.read(selectedItemProvider.notifier).selectItem({
               'icon': items[index]['icon'],
               'label': localizedLabel,
             });
           },
-          child: DragItem(
-            icon: items[index]['icon'],
-            label: localizedLabel,
-          ),
         );
       },
     );
@@ -144,31 +146,82 @@ class DragDropContainer extends HookConsumerWidget {
   }
 }
 
-class DragItem extends StatelessWidget {
+class DragItem extends StatefulWidget {
   final IconData icon;
   final String label;
+  final VoidCallback onSelect;
 
-  const DragItem({super.key, required this.icon, required this.label});
+  const DragItem({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.onSelect,
+  });
+
+  @override
+  State<DragItem> createState() => _DragItemState();
+}
+
+class _DragItemState extends State<DragItem> {
+  Color _backgroundColor = Colors.blueGrey[400]!;
+  bool _isHovering = false;
+  bool _isActive = false;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(5),
-      decoration: BoxDecoration(
-        color: Colors.blueGrey[400],
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 50, color: Colors.white),
-          const SizedBox(height: 5),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white),
-            textAlign: TextAlign.center, // テキストを中央揃え
+    return GestureDetector(
+      onTapDown: (_) {
+        setState(() {
+          _isActive = true; // タップ時の状態
+        });
+        widget.onSelect();
+        HapticFeedback.lightImpact();
+      },
+      onTapUp: (_) {
+        setState(() {
+          _isActive = false; // タップ解除
+        });
+      },
+      onTapCancel: () {
+        setState(() {
+          _isActive = false; // キャンセル時
+        });
+      },
+      child: MouseRegion(
+        onEnter: (_) {
+          setState(() {
+            _isHovering = true; // ホバー状態
+          });
+        },
+        onExit: (_) {
+          setState(() {
+            _isHovering = false; // ホバー解除
+          });
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          margin: const EdgeInsets.all(5),
+          decoration: BoxDecoration(
+            color: _isActive
+                ? const Color.fromARGB(255, 0, 255, 229)
+                : _isHovering
+                    ? Colors.teal[100]
+                    : _backgroundColor,
+            borderRadius: BorderRadius.circular(8),
           ),
-        ],
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(widget.icon, size: 50, color: Colors.white),
+              const SizedBox(height: 5),
+              Text(
+                widget.label,
+                style: const TextStyle(color: Colors.white),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

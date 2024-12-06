@@ -21,6 +21,9 @@ Map<String, dynamic> getStatusDetails(
   } else if (currentStatus == 'stroller') {
     statusIcon = Icons.child_friendly_sharp;
     statusText = AppLocalizations.of(context)!.stroller;
+  } else if (currentStatus == 'traveler') {
+    statusIcon = Icons.luggage_outlined;
+    statusText = AppLocalizations.of(context)!.traveler;
   } else {
     statusIcon = Icons.directions_walk_sharp;
     statusText = AppLocalizations.of(context)!.walker;
