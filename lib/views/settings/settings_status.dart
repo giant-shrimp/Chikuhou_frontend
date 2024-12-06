@@ -40,7 +40,6 @@ class SettingsStatus extends HookConsumerWidget {
                 trailing: currentStatus == 'runner'
                     ? const Icon(Icons.done, color: Colors.blue) // Runner選択時にチェックマーク
                     : null,
-                //機能完成後にコメントアウトを解除
                 onPressed: (context) {
                   ref.read(statusProvider.notifier).state = 'runner';  // Runnerに変更
                 },
@@ -52,7 +51,6 @@ class SettingsStatus extends HookConsumerWidget {
                 trailing: currentStatus == 'senior'
                     ? const Icon(Icons.done, color: Colors.blue) // Senior選択時にチェックマーク
                     : null,
-                //機能完成後にコメントアウトを解除
                 onPressed: (context) {
                   ref.read(statusProvider.notifier).state = 'senior';  // Seniorに変更
                 },
@@ -63,7 +61,6 @@ class SettingsStatus extends HookConsumerWidget {
                 trailing: currentStatus == 'bike'
                     ? const Icon(Icons.done, color: Colors.blue) // Bike選択時にチェックマーク
                     : null,
-                //機能完成後にコメントアウトを解除
                 onPressed: (context) {
                   ref.read(statusProvider.notifier).state = 'bike';  // Bikeに変更
                 },
@@ -74,7 +71,6 @@ class SettingsStatus extends HookConsumerWidget {
                 trailing: currentStatus == 'wheelchair'
                     ? const Icon(Icons.done, color: Colors.blue) // Wheelchair選択時にチェックマーク
                     : null,
-                //機能完成後にコメントアウトを解除
                 onPressed: (context) {
                   ref.read(statusProvider.notifier).state = 'wheelchair';  // Wheelchairに変更
                 },
@@ -82,12 +78,22 @@ class SettingsStatus extends HookConsumerWidget {
               SettingsTile(
                 leading: const Icon(Icons.child_friendly_sharp),
                 title: Text(AppLocalizations.of(context)!.stroller),
+                description: const Text(''),
                 trailing: currentStatus == 'stroller'
                     ? const Icon(Icons.done, color: Colors.blue) // Stroller選択時にチェックマーク
                     : null,
-                //機能完成後にコメントアウトを解除
                 onPressed: (context) {
                   ref.read(statusProvider.notifier).state = 'stroller';  // Strollerに変更
+                },
+              ),
+              SettingsTile(
+                leading: const Icon(Icons.luggage_outlined),
+                title: Text(AppLocalizations.of(context)!.traveler),
+                trailing: currentStatus == 'traveler'
+                    ? const Icon(Icons.done, color: Colors.blue) // Traveler選択時にチェックマーク
+                    : null,
+                onPressed: (context) {
+                  ref.read(statusProvider.notifier).state = 'traveler';  // Travelerに変更
                 },
               ),
             ],
