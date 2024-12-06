@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // HapticFeedbackに必要
+import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../config/providers/status_provider.dart';
@@ -44,6 +44,7 @@ class SettingsSub extends ConsumerWidget {
             alignment: Alignment.bottomCenter,
             child: BottomNavigationBar(
               currentIndex: 2, // デフォルトでホームを選択
+              onTap: null, // タップを無効化
               items: <BottomNavigationBarItem>[
                 BottomNavigationBarItem(
                     icon: const Icon(Icons.table_rows_rounded),
@@ -106,18 +107,16 @@ class DragDropContainer extends HookConsumerWidget {
         final localizedLabel =
             _getLocalizedLabel(context, items[index]['label']);
 
-        return GestureDetector(
-          onTap: () {
+        return DragItem(
+          icon: items[index]['icon'],
+          label: localizedLabel,
+          onSelect: () {
             // アイテムを選択
             ref.read(selectedItemProvider.notifier).selectItem({
               'icon': items[index]['icon'],
               'label': localizedLabel,
             });
           },
-          child: DragItem(
-            icon: items[index]['icon'],
-            label: localizedLabel,
-          ),
         );
       },
     );
@@ -150,8 +149,14 @@ class DragDropContainer extends HookConsumerWidget {
 class DragItem extends StatefulWidget {
   final IconData icon;
   final String label;
+  final VoidCallback onSelect;
 
-  const DragItem({super.key, required this.icon, required this.label});
+  const DragItem({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.onSelect,
+  });
 
   @override
   State<DragItem> createState() => _DragItemState();
@@ -159,43 +164,63 @@ class DragItem extends StatefulWidget {
 
 class _DragItemState extends State<DragItem> {
   Color _backgroundColor = Colors.blueGrey[400]!;
-
-  void _handleTap() {
-    setState(() {
-      _backgroundColor = Colors.teal[300]!;
-    });
-
-    Future.delayed(const Duration(milliseconds: 100), () {
-      setState(() {
-        _backgroundColor = Colors.blueGrey[400]!;
-      });
-    });
-
-    HapticFeedback.lightImpact();
-  }
+  bool _isHovering = false;
+  bool _isActive = false;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: _handleTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 100),
-        margin: const EdgeInsets.all(5),
-        decoration: BoxDecoration(
-          color: _backgroundColor,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(widget.icon, size: 50, color: Colors.white),
-            const SizedBox(height: 5),
-            Text(
-              widget.label,
-              style: const TextStyle(color: Colors.white),
-              textAlign: TextAlign.center,
-            ),
-          ],
+      onTapDown: (_) {
+        setState(() {
+          _isActive = true; // タップ時の状態
+        });
+        widget.onSelect();
+        HapticFeedback.lightImpact();
+      },
+      onTapUp: (_) {
+        setState(() {
+          _isActive = false; // タップ解除
+        });
+      },
+      onTapCancel: () {
+        setState(() {
+          _isActive = false; // キャンセル時
+        });
+      },
+      child: MouseRegion(
+        onEnter: (_) {
+          setState(() {
+            _isHovering = true; // ホバー状態
+          });
+        },
+        onExit: (_) {
+          setState(() {
+            _isHovering = false; // ホバー解除
+          });
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          margin: const EdgeInsets.all(5),
+          decoration: BoxDecoration(
+            color: _isActive
+                ? const Color.fromARGB(255, 0, 255, 229)
+                : _isHovering
+                    ? Colors.teal[100]
+                    : _backgroundColor,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(widget.icon, size: 50, color: Colors.white),
+              const SizedBox(height: 5),
+              Text(
+                widget.label,
+                style: const TextStyle(color: Colors.white),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );
