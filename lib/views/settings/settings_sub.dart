@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // HapticFeedbackに必要
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../config/providers/status_provider.dart';
@@ -6,12 +7,14 @@ import '../../config/providers/sub_provider.dart';
 import 'settings_status.dart';
 
 // 選択されたアイテムの状態を管理するプロバイダー
-final selectedItemProvider = StateNotifierProvider<SelectedItemNotifier, Map<String, dynamic>>(
-      (ref) => SelectedItemNotifier(),
+final selectedItemProvider =
+    StateNotifierProvider<SelectedItemNotifier, Map<String, dynamic>>(
+  (ref) => SelectedItemNotifier(),
 );
 
 class SelectedItemNotifier extends StateNotifier<Map<String, dynamic>> {
-  SelectedItemNotifier() : super({'icon': Icons.cloudy_snowing, 'label': '雨雲レーダー'});
+  SelectedItemNotifier()
+      : super({'icon': Icons.cloudy_snowing, 'label': '雨雲レーダー'});
 
   void selectItem(Map<String, dynamic> item) {
     state = item;
@@ -41,7 +44,6 @@ class SettingsSub extends ConsumerWidget {
             alignment: Alignment.bottomCenter,
             child: BottomNavigationBar(
               currentIndex: 2, // デフォルトでホームを選択
-              onTap: null, // タップを無効化
               items: <BottomNavigationBarItem>[
                 BottomNavigationBarItem(
                     icon: const Icon(Icons.table_rows_rounded),
@@ -101,7 +103,8 @@ class DragDropContainer extends HookConsumerWidget {
       itemCount: items.length,
       itemBuilder: (context, index) {
         // ローカライズされたラベルを取得
-        final localizedLabel = _getLocalizedLabel(context, items[index]['label']);
+        final localizedLabel =
+            _getLocalizedLabel(context, items[index]['label']);
 
         return GestureDetector(
           onTap: () {
@@ -144,31 +147,56 @@ class DragDropContainer extends HookConsumerWidget {
   }
 }
 
-class DragItem extends StatelessWidget {
+class DragItem extends StatefulWidget {
   final IconData icon;
   final String label;
 
   const DragItem({super.key, required this.icon, required this.label});
 
   @override
+  State<DragItem> createState() => _DragItemState();
+}
+
+class _DragItemState extends State<DragItem> {
+  Color _backgroundColor = Colors.blueGrey[400]!;
+
+  void _handleTap() {
+    setState(() {
+      _backgroundColor = Colors.teal[300]!;
+    });
+
+    Future.delayed(const Duration(milliseconds: 100), () {
+      setState(() {
+        _backgroundColor = Colors.blueGrey[400]!;
+      });
+    });
+
+    HapticFeedback.lightImpact();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(5),
-      decoration: BoxDecoration(
-        color: Colors.blueGrey[400],
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 50, color: Colors.white),
-          const SizedBox(height: 5),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white),
-            textAlign: TextAlign.center, // テキストを中央揃え
-          ),
-        ],
+    return GestureDetector(
+      onTap: _handleTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 100),
+        margin: const EdgeInsets.all(5),
+        decoration: BoxDecoration(
+          color: _backgroundColor,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(widget.icon, size: 50, color: Colors.white),
+            const SizedBox(height: 5),
+            Text(
+              widget.label,
+              style: const TextStyle(color: Colors.white),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
