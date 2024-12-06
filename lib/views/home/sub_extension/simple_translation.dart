@@ -13,7 +13,8 @@ class _SimpleTranslationScreenState extends State<SimpleTranslationScreen> {
   String? _selectedValue = '日本語';
 
   // ドロップダウンの選択肢
-  final List<String> _dropdownValues = ['日本語', 'English', '한국어'];
+  final List<String> _dropdownValues1 = ['日本語', 'English', '한국어'];
+  final List<String> _dropdownValues2 = ['日本語', 'English', '한국어'];
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +63,7 @@ class _SimpleTranslationScreenState extends State<SimpleTranslationScreen> {
                         _selectedValue = newValue;
                       });
                     },
-                    items: _dropdownValues.map<DropdownMenuItem<String>>((String value) {
+                    items: _dropdownValues1.map<DropdownMenuItem<String>>((String value) {
                       return DropdownMenuItem<String>(
                         value: value,
                         child: Text(value),
@@ -97,7 +98,7 @@ class _SimpleTranslationScreenState extends State<SimpleTranslationScreen> {
                         _selectedValue = newValue;
                       });
                     },
-                    items: _dropdownValues.map<DropdownMenuItem<String>>((String value) {
+                    items: _dropdownValues2.map<DropdownMenuItem<String>>((String value) {
                       return DropdownMenuItem<String>(
                         value: value,
                         child: Text(value),
