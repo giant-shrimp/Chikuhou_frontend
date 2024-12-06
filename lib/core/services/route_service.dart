@@ -9,7 +9,7 @@ class RouteService {
   Future<Map<String, dynamic>> getRoute(
       String origin, String destination) async {
     final url =
-        'https://maps.googleapis.com/maps/api/directions/json?origin=$origin&destination=$destination&key=$apiKey';
+        'https://maps.googleapis.com/maps/api/directions/json?origin=$origin&destination=$destination&mode=walking&key=$apiKey';
     final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {

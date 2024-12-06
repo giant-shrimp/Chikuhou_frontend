@@ -1,6 +1,5 @@
 {
   "@@locale": "en",
-
   "menu": "menu",
   "home": "home",
   "language": "Language",
@@ -25,13 +24,11 @@
   "calorie_count": "Calorie Count",
   "faq": "FAQ",
   "app_version": "App Version",
-
   "swap": "Switch accounts",
   "sign_out": "Sign out",
   "sign_out_confirmation": "Sign out confirmation",
   "are_you_sure_sign_out": "Are you sure you want to sign out?",
   "cancel": "Cancel",
-
   "sign_in": "Sign in",
   "sign_in_error": "Your email or password is incorrect. Please try again.",
   "ok": "OK",
@@ -43,16 +40,13 @@
   "change_password": "Change Password",
   "change_password_success": "Password changed.",
   "change_password_error": "Failed to change password. Please try again.",
-
   "sign_up": "Sign up",
   "sign_up_error": "The password is incorrect. Please try again.",
-
   "multiple_route_search": "Multiple route search",
   "route_search": "Route search",
   "number_of_routes_being_acquired": "Number of routes being acquired",
   "departure_point": "Departure point",
   "destination": "Destination",
-
   "simple_gradient_calculation": "Simple gradient calculation",
   "quadrature_by_pieces": "Quadrature by Pieces",
   "linear_calculations": "Linear Calculations",
@@ -62,14 +56,12 @@
   "fourier_transform": "Fourier Transform",
   "helmholtz_decomposition": "Helmholtz Decomposition",
   "riemannian_metric": "Riemannian Metric",
-
   "formula": "Formula",
   "overview": "Overview",
   "compatible_types": "Compatible types",
   "advantages": "Advantages",
   "disadvantages": "Disadvantages",
   "confirm": "Confirm",
-
   "walker": "Walker",
   "runner": "Runner",
   "senior": "Senior",
