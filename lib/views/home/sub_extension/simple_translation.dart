@@ -10,11 +10,12 @@ class SimpleTranslationScreen extends StatefulWidget {
 
 class _SimpleTranslationScreenState extends State<SimpleTranslationScreen> {
   // ドロップダウンの初期値
-  String? _selectedValue = '日本語';
+  String? _selectedValue1 = '日本語';
+  String? _selectedValue2 = '日本語';
 
   // ドロップダウンの選択肢
-  final List<String> _dropdownValues1 = ['日本語', 'English', '한국어'];
-  final List<String> _dropdownValues2 = ['日本語', 'English', '한국어'];
+   List<String> _dropdownValues1 = ['日本語', 'English', '한국어'];
+   List<String> _dropdownValues2 = ['日本語', 'English', '한국어'];
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +52,7 @@ class _SimpleTranslationScreenState extends State<SimpleTranslationScreen> {
                 children: [
                   // 最初のドロップダウンメニュー
                   DropdownButton<String>(
-                    value: _selectedValue,
+                    value: _selectedValue1,
                     icon: const Icon(Icons.arrow_downward),
                     elevation: 16,
                     style: const TextStyle(
@@ -60,7 +61,7 @@ class _SimpleTranslationScreenState extends State<SimpleTranslationScreen> {
                     ),
                     onChanged: (String? newValue) {
                       setState(() {
-                        _selectedValue = newValue;
+                        _selectedValue1 = newValue;
                       });
                     },
                     items: _dropdownValues1.map<DropdownMenuItem<String>>((String value) {
@@ -86,7 +87,7 @@ class _SimpleTranslationScreenState extends State<SimpleTranslationScreen> {
 
                   // 2つ目のドロップダウンメニュー
                   DropdownButton<String>(
-                    value: _selectedValue,
+                    value: _selectedValue2,
                     icon: const Icon(Icons.arrow_downward),
                     elevation: 16,
                     style: const TextStyle(
@@ -95,7 +96,7 @@ class _SimpleTranslationScreenState extends State<SimpleTranslationScreen> {
                     ),
                     onChanged: (String? newValue) {
                       setState(() {
-                        _selectedValue = newValue;
+                        _selectedValue2 = newValue;
                       });
                     },
                     items: _dropdownValues2.map<DropdownMenuItem<String>>((String value) {
