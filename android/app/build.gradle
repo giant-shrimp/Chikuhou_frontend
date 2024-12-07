@@ -1,0 +1,66 @@
+plugins {
+    id 'com.android.application'
+    id 'com.google.gms.google-services'
+    id 'com.google.firebase.appdistribution'
+}
+
+// Flutter 用の Gradle スクリプトを適用
+apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
+
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+
+android {
+    namespace = "com.example.challecara"
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        applicationId = "com.example.challecara"
+        minSdk = flutter.minSdkVersion
+        minSdkVersion 23
+        targetSdk = flutter.targetSdkVersion
+        targetSdkVersion 33
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+    }
+
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                def keystoreProperties = new Properties()
+                keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+
+            // Firebase App Distribution の設定を追加
+            firebaseAppDistribution {
+                serviceCredentialsFile = "./aruke-ru-firebase-adminsdk-axf7n-b5eb694ea2.json" // サービスアカウントJSONファイルのパス
+                artifactType = "APK" // または "AAB"
+                // releaseNotesFile = "/path/to/release-notes.txt" // リリースノートファイルのパス
+                // testers = "tester1@example.com, tester2@example.com" // テスターのメールアドレスをカンマ区切りで指定
+            }
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}
