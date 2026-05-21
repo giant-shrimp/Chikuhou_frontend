@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:challecara/l10n/app_localizations.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../viewmodels/map/route_viewmodel.dart';
-import '../../viewmodels/map/gradient_calculator.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../widgets/common/custom_button.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../settings/settings_calculation_method.dart';
+import '../settings/settings_status.dart';
 
-final currentStateProvider =
-    StateProvider<String>((ref) => 'walker'); // 初期ステータス
 void main() async {
   await dotenv.load(fileName: ".env"); // dotenvファイルをロード
   runApp(const MyApp());
@@ -44,9 +42,9 @@ class HomeScreen extends HookConsumerWidget {
     final loadingRoutesCount = useState(0);
     final originController = TextEditingController();
     final destinationController = TextEditingController();
-    final currentState = ref.watch(currentStateProvider);
+    final currentState = ref.watch(statusProvider);
     final currentMethod = ref.watch(methodProvider);
-    String apiKey = dotenv.env['API_KEY']!;
+    String apiKey = 'AIzaSyDsuwb8Xg0XB7tHfmf5vSvABfXVCIs6Yl0';
     final routeViewModel = RouteViewModel(apiKey: apiKey);
 
     return Scaffold(
@@ -102,8 +100,6 @@ class HomeScreen extends HookConsumerWidget {
         padding: const EdgeInsets.only(bottom: 15.0), // 下からの余白を調整
         child: FloatingActionButton(
           onPressed: () {
-            print('現在のメソッド: $currentMethod');
-
             _showRouteSearchModal(
               context,
               ref,
@@ -137,7 +133,7 @@ class HomeScreen extends HookConsumerWidget {
     String currentMethod,
     String currentState,
   ) async {
-    String apiKey = dotenv.env['API_KEY']!;
+    String apiKey = 'AIzaSyDsuwb8Xg0XB7tHfmf5vSvABfXVCIs6Yl0';
     final routeViewModel = RouteViewModel(apiKey: apiKey);
 
     showModalBottomSheet(
@@ -200,58 +196,67 @@ class HomeScreen extends HookConsumerWidget {
                             loadingRoutesCount.value = 0; // 初期化
 
                             try {
-                              // 始点・終点の入力チェック
-                              if (originController.text.isNotEmpty &&
-                                  destinationController.text.isNotEmpty) {
-                                final originLocation = await routeViewModel
-                                    .fetchCoordinatesFromAddress(
-                                  originController.text,
-                                );
-                                final destinationLocation = await routeViewModel
-                                    .fetchCoordinatesFromAddress(
-                                  destinationController.text,
-                                );
-
-                                // カメラ移動
-                                final bounds = LatLngBounds(
-                                  southwest: LatLng(
-                                    originLocation.latitude <
-                                            destinationLocation.latitude
-                                        ? originLocation.latitude
-                                        : destinationLocation.latitude,
-                                    originLocation.longitude <
-                                            destinationLocation.longitude
-                                        ? originLocation.longitude
-                                        : destinationLocation.longitude,
-                                  ),
-                                  northeast: LatLng(
-                                    originLocation.latitude >
-                                            destinationLocation.latitude
-                                        ? originLocation.latitude
-                                        : destinationLocation.latitude,
-                                    originLocation.longitude >
-                                            destinationLocation.longitude
-                                        ? originLocation.longitude
-                                        : destinationLocation.longitude,
-                                  ),
-                                );
-                                mapController.value?.animateCamera(
-                                  CameraUpdate.newLatLngBounds(bounds, 50),
-                                );
+                              if (originController.text.isEmpty ||
+                                  destinationController.text.isEmpty) {
+                                throw Exception('始点・終点を入力してください');
                               }
 
-                              // 複数ルートの取得
+                              // 始点・終点をジオコーディング
+                              final originLocation = await routeViewModel
+                                  .fetchCoordinatesFromAddress(
+                                originController.text,
+                              );
+                              final destinationLocation = await routeViewModel
+                                  .fetchCoordinatesFromAddress(
+                                destinationController.text,
+                              );
+
+                              // カメラ移動
+                              final bounds = LatLngBounds(
+                                southwest: LatLng(
+                                  originLocation.latitude <
+                                          destinationLocation.latitude
+                                      ? originLocation.latitude
+                                      : destinationLocation.latitude,
+                                  originLocation.longitude <
+                                          destinationLocation.longitude
+                                      ? originLocation.longitude
+                                      : destinationLocation.longitude,
+                                ),
+                                northeast: LatLng(
+                                  originLocation.latitude >
+                                          destinationLocation.latitude
+                                      ? originLocation.latitude
+                                      : destinationLocation.latitude,
+                                  originLocation.longitude >
+                                          destinationLocation.longitude
+                                      ? originLocation.longitude
+                                      : destinationLocation.longitude,
+                                ),
+                              );
+                              mapController.value?.animateCamera(
+                                CameraUpdate.newLatLngBounds(bounds, 50),
+                              );
+
+                              // 複数ルートの取得：DirectionsService が略称・俗称
+                              // （例：「九工大飯塚キャンパス」）を内部ジオコーディング
+                              // できず ZERO_RESULTS になるため、ジオコーディング済み
+                              // の緯度経度を "lat,lng" 文字列で渡す。
+                              final originLatLng =
+                                  '${originLocation.latitude},${originLocation.longitude}';
+                              final destinationLatLng =
+                                  '${destinationLocation.latitude},${destinationLocation.longitude}';
                               final multipleRoutes =
                                   await routeViewModel.fetchMultipleRoutes(
-                                originController.text,
-                                destinationController.text,
+                                originLatLng,
+                                destinationLatLng,
                                 apiKey,
                               );
 
                               final List<List<double>> elevationsList = [];
                               final Set<Polyline> allPolylines = {};
 
-                              // ルートを描画
+                              // ルートを描画（全ルート収集後に一括更新）
                               for (int i = 0; i < multipleRoutes.length; i++) {
                                 final route = multipleRoutes[i];
                                 final points = routeViewModel.decodePolyline(
@@ -259,14 +264,15 @@ class HomeScreen extends HookConsumerWidget {
 
                                 final elevations = await routeViewModel
                                     .fetchElevationsForPolyline(points);
-
                                 elevationsList.add(elevations);
 
-                                final routeColor = Color.lerp(
-                                  Colors.lightBlue,
-                                  const Color.fromARGB(255, 8, 29, 149),
-                                  i / (multipleRoutes.length - 1),
-                                )!;
+                                final routeColor = multipleRoutes.length > 1
+                                    ? Color.lerp(
+                                        Colors.lightBlue,
+                                        const Color.fromARGB(255, 8, 29, 149),
+                                        i / (multipleRoutes.length - 1),
+                                      )!
+                                    : Colors.lightBlue;
 
                                 allPolylines.add(
                                   Polyline(
@@ -278,16 +284,19 @@ class HomeScreen extends HookConsumerWidget {
                                 );
 
                                 loadingRoutesCount.value = i + 1;
-                                polylines.value = allPolylines;
+                                // map更新は最後に一括で行う（途中更新でWebGL負荷増大を防ぐ）
                               }
+                              polylines.value = allPolylines; // 一括更新
 
-                              // 最も緩やかなルートを描画
-                              final gradientCalculator = GradientCalculator();
+                              // ユーザーステータス・計算メソッドを考慮した最適ルート選択
                               final leastGradientRoute =
-                                  gradientCalculator.findLeastGradientRoute(
-                                multipleRoutes,
-                                elevationsList,
-                                currentMethod,
+                                  await routeViewModel.fetchLeastGradientRoute(
+                                multipleRoutes: multipleRoutes,
+                                elevationsList: elevationsList,
+                                currentStatus: currentState,
+                                currentMethod: currentMethod,
+                                origin: originLatLng,
+                                destination: destinationLatLng,
                               );
 
                               final leastGradientPoints =
@@ -313,6 +322,41 @@ class HomeScreen extends HookConsumerWidget {
                                     leastGradientBounds, 50),
                               );
                             } catch (error) {
+                              final msg = error.toString();
+                              if (context.mounted) {
+                                if (msg.contains('distance_too_long')) {
+                                  final dist = msg.split(':').last;
+                                  await showDialog(
+                                    context: context,
+                                    builder: (ctx) => AlertDialog(
+                                      title: const Text('距離が長すぎます'),
+                                      content: Text(
+                                          '徒歩での移動距離が $dist を超えています。\n10km以内の区間で検索してください。'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(ctx),
+                                          child: const Text('OK'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                } else {
+                                  await showDialog(
+                                    context: context,
+                                    builder: (ctx) => AlertDialog(
+                                      title: const Text('ルート取得エラー'),
+                                      content: const Text(
+                                          'ルートを取得できませんでした。\n住所を確認してもう一度お試しください。'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(ctx),
+                                          child: const Text('OK'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }
+                              }
                               print('ルート取得エラー: $error');
                             } finally {
                               isLoading.value = false;

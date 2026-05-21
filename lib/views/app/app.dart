@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:challecara/l10n/app_localizations.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../home/sub_extension/audio_guidance.dart';
 import '../home/sub_extension/calorie_count.dart';
 import '../home/sub_extension/marathon_course.dart';
 import '../home/sub_extension/rain_cloud_radar.dart';
-import '../home/sub_extension/reviews.dart';
-import '../home/sub_extension/securing_evacuation_routes.dart';
-import '../home/sub_extension/simple_translation.dart';
 import '../settings/settings_calculation_method.dart';
 import '../../../views/settings/settings_status.dart';
 import '../../../views/home/menu.dart';
 import '../../../views/home/home.dart';
 import '../../config/providers/status_provider.dart';
+import '../../config/providers/sub_provider.dart';
 import '../settings/settings_sub.dart';
 
 class MyStatefulWidget extends ConsumerStatefulWidget {
@@ -23,18 +20,15 @@ class MyStatefulWidget extends ConsumerStatefulWidget {
 }
 
 class _MyStatefulWidgetState extends ConsumerState<MyStatefulWidget> {
-  int _selectedIndex = 2;
-
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    ref.read(selectedIndexProvider.notifier).state = index;
   }
 
   @override
   Widget build(BuildContext context) {
     // 現在のステータスを取得
     final currentStatus = ref.watch(statusProvider);
+    final selectedIndex = ref.watch(selectedIndexProvider);
 
     final statusDetails = getStatusDetails(context, currentStatus);
     IconData statusIcon = statusDetails['icon'];
@@ -49,20 +43,8 @@ class _MyStatefulWidgetState extends ConsumerState<MyStatefulWidget> {
       case Icons.cloudy_snowing:
         subScreen = const RainCloudRadarScreen();
         break;
-      case Icons.volume_up:
-        subScreen = const AudioGuidanceScreen();
-        break;
-      case Icons.g_translate:
-        subScreen = const SimpleTranslationScreen();
-        break;
-      case Icons.forum:
-        subScreen = const ReviewsScreen();
-        break;
       case Icons.directions_run:
         subScreen = const MarathonCourseScreen();
-        break;
-      case Icons.add_home_work:
-        subScreen = const SecuringEvacuationRoutesScreen();
         break;
       case Icons.monitor_weight:
         subScreen = const CalorieCountScreen();
@@ -81,9 +63,9 @@ class _MyStatefulWidgetState extends ConsumerState<MyStatefulWidget> {
     ];
 
     return Scaffold(
-      body: screens[_selectedIndex],
+      body: screens[selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
+        currentIndex: selectedIndex,
         onTap: _onItemTapped,
         items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(

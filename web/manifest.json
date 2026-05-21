@@ -1,11 +1,11 @@
 {
-    "name": "challecara",
-    "short_name": "challecara",
+    "name": "アルケール",
+    "short_name": "アルケール",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "筑豊エリアを歩く・走る・移動するすべての人のためのルート案内＆生活支援アプリ",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

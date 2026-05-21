@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:challecara/l10n/app_localizations.dart';
 import 'config/providers/locale_provider.dart';
 import '../views/auth/sign_in.dart';
+import '../views/app/app.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'config/theme.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -33,7 +35,7 @@ class MyApp extends StatelessWidget {
           final locale = ref.watch(localeProvider);
 
           return MaterialApp(
-            title: 'Flutter Demo',
+            title: 'アルケール',
             theme: appTheme, //テーマを外部化
             locale: locale, // 言語設定を反映
             localizationsDelegates: const [
@@ -47,7 +49,20 @@ class MyApp extends StatelessWidget {
               Locale('ja', ''), // 日本語
               Locale('ko', ''), // 韓国語
             ],
-            home: const SignInScreen(),
+            home: StreamBuilder<User?>(
+              stream: FirebaseAuth.instance.authStateChanges(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Scaffold(
+                    body: Center(child: CircularProgressIndicator()),
+                  );
+                }
+                if (snapshot.hasData) {
+                  return const MyStatefulWidget();
+                }
+                return const SignInScreen();
+              },
+            ),
           );
         },
       ),
