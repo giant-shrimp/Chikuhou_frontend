@@ -45,3 +45,10 @@ app.*.map.json
 
 /android/app/src/main/AndroidManifest.xml
 .env
+
+# Claude Code
+.claude/
+
+# Firebase
+.firebase/
+.firebaserc

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:challecara/l10n/app_localizations.dart';
 import '../widgets/common/custom_calculation_modal.dart';
 import 'settings_status.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';

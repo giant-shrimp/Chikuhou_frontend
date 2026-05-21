@@ -2,6 +2,83 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:math';
 
 class GradientCalculator {
+  /// 区間ごとの勾配(%)を返す。上りが正、下りが負。
+  /// points と elevations の長さが異なる場合は短い方に合わせて処理する。
+  List<double> calcSegmentGradients(
+      List<LatLng> points, List<double> elevations) {
+    final int n = points.length < elevations.length
+        ? points.length
+        : elevations.length;
+    if (n < 2) return [];
+
+    final List<double> gradients = [];
+    for (int i = 0; i < n - 1; i++) {
+      final double horizontal = _calculateDistance(points[i], points[i + 1]);
+      if (horizontal == 0) {
+        gradients.add(0.0);
+        continue;
+      }
+      final double dh = elevations[i + 1] - elevations[i];
+      gradients.add((dh / horizontal) * 100.0);
+    }
+    return gradients;
+  }
+
+  /// walker(デフォルト) / wheelchair：上り勾配の二乗和（急坂に強いペナルティ）。
+  /// 値が低いほど緩い。
+  double scoreLeastGradient(List<double> gradients, double totalDistanceM) {
+    double sumSquares = 0.0;
+    for (final g in gradients) {
+      if (g > 0) sumSquares += g * g;
+    }
+    return sumSquares;
+  }
+
+  /// senior / stroller：勾配絶対値の最大値（最大傾斜を最小化）。
+  /// 値が低いほど最大斜面が緩い。
+  double scoreFlatFavorite(List<double> gradients, double totalDistanceM) {
+    double maxAbs = 0.0;
+    for (final g in gradients) {
+      final double abs = g.abs();
+      if (abs > maxAbs) maxAbs = abs;
+    }
+    return maxAbs;
+  }
+
+  /// runner：勾配の正値の合計（上り累積）。
+  /// 値が高いほど上りが多い。最大値選択用の生スコア。
+  double scoreSteepest(List<double> gradients, double totalDistanceM) {
+    double sumPositive = 0.0;
+    for (final g in gradients) {
+      if (g > 0) sumPositive += g;
+    }
+    return sumPositive;
+  }
+
+  /// traveler：距離最短。値が低いほど短い。
+  double scoreShortest(List<double> gradients, double totalDistanceM) {
+    return totalDistanceM;
+  }
+
+  /// currentStatus に応じたスコアを返す。すべて「低い=優先」に統一済み。
+  /// runner は scoreSteepest を負値化（上り累積が大きいほどスコアが低くなる）。
+  double scoreByStatus(
+      String currentStatus, List<double> gradients, double totalDistanceM) {
+    switch (currentStatus) {
+      case 'senior':
+      case 'stroller':
+        return scoreFlatFavorite(gradients, totalDistanceM);
+      case 'runner':
+        return -scoreSteepest(gradients, totalDistanceM);
+      case 'traveler':
+        return scoreShortest(gradients, totalDistanceM);
+      case 'walker':
+      case 'wheelchair':
+      default:
+        return scoreLeastGradient(gradients, totalDistanceM);
+    }
+  }
+
   /// 勾配を計算し、最も緩いルートを返す
   Map<String, dynamic> findLeastGradientRoute(List<Map<String, dynamic>> routes,
       List<List<double>> elevationsList, method) {
@@ -449,27 +526,26 @@ class GradientCalculator {
   List<LatLng> decodePolyline(String encoded) {
     List<LatLng> points = [];
     int index = 0, len = encoded.length;
-    int lat = 0, lng = 0;
+    double lat = 0, lng = 0;
 
     while (index < len) {
-      int b, shift = 0, result = 0;
+      double result = 0, multiplier = 1;
+      int b;
       do {
         b = encoded.codeUnitAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-      int dlat = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
-      lat += dlat;
+        result += (b % 32) * multiplier;
+        multiplier *= 32;
+      } while (b >= 32);
+      lat += result % 2 != 0 ? -(result + 1) / 2 : result / 2;
 
-      shift = 0;
       result = 0;
+      multiplier = 1;
       do {
         b = encoded.codeUnitAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-      int dlng = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
-      lng += dlng;
+        result += (b % 32) * multiplier;
+        multiplier *= 32;
+      } while (b >= 32);
+      lng += result % 2 != 0 ? -(result + 1) / 2 : result / 2;
 
       points.add(LatLng(lat / 1E5, lng / 1E5));
     }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:challecara/l10n/app_localizations.dart';
 import '../../settings/settings_calculation_method.dart';
 import 'custom_button.dart';
 

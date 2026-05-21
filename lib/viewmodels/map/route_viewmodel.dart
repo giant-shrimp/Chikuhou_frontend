@@ -4,6 +4,12 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:math';
 import 'gradient_calculator.dart';
+import 'directions_helper_stub.dart'
+    if (dart.library.html) 'directions_helper_web.dart';
+import 'geocoding_helper_stub.dart'
+    if (dart.library.html) 'geocoding_helper_web.dart';
+import 'elevation_helper_stub.dart'
+    if (dart.library.html) 'elevation_helper_web.dart';
 
 class RouteViewModel extends ChangeNotifier {
   final String apiKey;
@@ -12,6 +18,8 @@ class RouteViewModel extends ChangeNotifier {
 
   RouteViewModel({required this.apiKey, this.maxRoutes = 20});
 
+  static const double maxWalkingDistanceMeters = 10000; // 10km上限
+
   Future<List<Map<String, dynamic>>> fetchMultipleRoutes(
     String origin,
     String destination,
@@ -19,239 +27,267 @@ class RouteViewModel extends ChangeNotifier {
     int maxRoutes = 20,
   }) async {
     final originalRoute = await _fetchOriginalRoute(origin, destination);
-    final originalPolyline =
-        decodePolyline(originalRoute['overview_polyline']['points']);
 
-    List<Map<String, dynamic>> multipleRoutes = [originalRoute];
-
-    List<double> fractions = [
-      0.5,
-      0.25,
-      0.75,
-      0.125,
-      0.375,
-      0.675,
-      0.875,
-      0.1875,
-      0.3125,
-      0.4375,
-      0.5875,
-      0.7125,
-      0.8125,
-      0.9375,
-    ];
-
-    while (multipleRoutes.length < maxRoutes) {
-      bool newRouteAdded = false;
-
-      for (double fraction in fractions) {
-        // 1. `fraction` 地点までの元ポリラインを取得
-        final intermediatePath =
-            _getIntermediatePath(originalPolyline, fraction);
-        final intermediatePoint = intermediatePath.last; // 中間地点を取得
-
-        // 2. `fraction` 地点から目的地までの代替ルートを取得
-        final alternativeRoutes =
-            await _fetchAlternativeRoutes(intermediatePoint, destination);
-
-        for (final route in alternativeRoutes) {
-          final alternativePolyline =
-              decodePolyline(route['overview_polyline']['points']);
-
-          // 3. 元ポリラインの始点から `fraction` まで + 代替ポリラインを結合
-          final combinedPolyline = [
-            ...intermediatePath,
-            ...alternativePolyline
-          ];
-
-          // 4. 重複チェック
-          if (!multipleRoutes.any((r) =>
-              r['overview_polyline']['points'] ==
-              route['overview_polyline']['points'])) {
-            // 5. 結合したポリラインを格納
-            multipleRoutes.add({
-              'overview_polyline': {
-                'points': _encodePolyline(combinedPolyline), // エンコード済みポリラインを格納
-              },
-              'legs': route['legs'], // 元のルート情報を利用
-            });
-            newRouteAdded = true;
-          }
-        }
-      }
-
-      if (!newRouteAdded) {
-        print('新しいルートが追加されませんでした。ループを終了します。');
-        break;
-      }
-
-      print('現在のルート数: ${multipleRoutes.length}');
+    // 徒歩距離が長すぎる場合は中止
+    final legs = originalRoute['legs'] as List;
+    final totalDistance =
+        legs.fold<int>(0, (int sum, dynamic leg) => sum + (leg['distance']['value'] as int));
+    if (totalDistance > maxWalkingDistanceMeters) {
+      throw Exception('distance_too_long:${(totalDistance / 1000).toStringAsFixed(1)}km');
     }
 
-    return multipleRoutes;
+    // 代替ルート取得（失敗しても継続）
+    List<Map<String, dynamic>> alternatives = [];
+    try {
+      alternatives = await fetchDirections(origin, destination, true, apiKey);
+    } catch (_) {}
+
+    // ポリライン文字列で重複除去しながら結合
+    final seen = <String>{};
+    final allRoutes = <Map<String, dynamic>>[];
+    for (final r in [originalRoute, ...alternatives]) {
+      final key = r['overview_polyline']['points'] as String;
+      if (seen.add(key)) allRoutes.add(r);
+      if (allRoutes.length >= maxRoutes) break;
+    }
+
+    return allRoutes;
   }
 
-  Future<Map<String, dynamic>> fetchLeastGradientRoute(
-    String origin,
-    String destination,
-    String apiKey,
+  /// home.dart で取得済みのルート・高度データを受け取り最適ルートを返す
+  /// （ユーザーステータスでフィルタ → 分割点高度でスコアリング → 必要なら method で二段階選択）
+  ///
+  /// [elevationsList] は getElevationAlongPath で取得済みの高度配列。
+  /// 分割点高度がすべて取得失敗した場合のフォールバックとして使用する。
+  Future<Map<String, dynamic>> fetchLeastGradientRoute({
+    required List<Map<String, dynamic>> multipleRoutes,
+    required List<List<double>> elevationsList,
+    required String currentMethod,
+    required String currentStatus,
+    required String origin,
+    required String destination,
+  }) async {
+    if (multipleRoutes.isEmpty) throw Exception('ルートがありません');
+
+    if (currentStatus == 'bike') {
+      return _fetchBikerRoute(origin, destination, apiKey);
+    }
+
+    final originalRoute = multipleRoutes[0];
+    final originalDistance = _calculateTotalDistance(
+        decodePolyline(originalRoute['overview_polyline']['points']));
+    final originalDuration = (originalRoute['legs'] as List).fold<double>(
+        0.0,
+        (double sum, dynamic leg) =>
+            sum + (leg['duration']['value'] as int));
+
+    final filteredRoutes = _filterRoutesByUserType(
+      currentStatus,
+      multipleRoutes,
+      originalDistance,
+      originalDuration,
+    );
+    final effectiveRoutes =
+        filteredRoutes.isEmpty ? multipleRoutes : filteredRoutes;
+    final effectiveElevations = filteredRoutes.isEmpty
+        ? elevationsList
+        : elevationsList.sublist(
+            0, effectiveRoutes.length.clamp(0, elevationsList.length));
+
+    final calc = GradientCalculator();
+
+    // 各ルートの分割点・距離を先に計算（同期処理）
+    final routeMeta = effectiveRoutes.map((route) {
+      final polylinePoints =
+          decodePolyline(route['overview_polyline']['points']);
+      final splitPoints =
+          extractSplitPoints(polylinePoints, segmentCount: 10);
+      final totalDistance = _calculateTotalDistance(polylinePoints);
+      return (splitPoints: splitPoints, totalDistance: totalDistance);
+    }).toList();
+
+    // 高度取得を並列実行（逐次待機による遅延を防ぐ）
+    final elevationResults = await Future.wait(
+      routeMeta.map((m) => fetchElevationsAtPoints(m.splitPoints)),
+    );
+
+    // スコアリング
+    final List<double?> scores = [];
+    for (int i = 0; i < effectiveRoutes.length; i++) {
+      final pointElevations = elevationResults[i];
+      if (pointElevations.isEmpty) {
+        scores.add(null);
+        continue;
+      }
+      final gradients = calc.calcSegmentGradients(
+          routeMeta[i].splitPoints, pointElevations);
+      scores.add(
+          calc.scoreByStatus(currentStatus, gradients, routeMeta[i].totalDistance));
+    }
+
+    // 分割点高度がすべて空のときは elevationsList をフォールバックとして使う
+    if (!scores.any((s) => s != null)) {
+      return _fallbackByElevationsList(
+        effectiveRoutes,
+        effectiveElevations,
+        currentMethod,
+        currentStatus,
+        calc,
+      );
+    }
+
+    // Phase 1: スコアで最良ルートを選ぶ（scoreByStatus は「低い=良い」で統一済み）
+    int bestIdx = 0;
+    double bestScore = double.infinity;
+    for (int i = 0; i < scores.length; i++) {
+      final s = scores[i];
+      if (s == null) continue;
+      if (s < bestScore) {
+        bestScore = s;
+        bestIdx = i;
+      }
+    }
+
+    // Phase 2: 二段階選択（runner 以外で currentMethod が明示されている場合のみ）
+    if (currentStatus != 'runner' && _isExplicitMethod(currentMethod)) {
+      final ranked = <int>[];
+      for (int i = 0; i < scores.length; i++) {
+        if (scores[i] != null &&
+            i < effectiveElevations.length &&
+            effectiveElevations[i].isNotEmpty) {
+          ranked.add(i);
+        }
+      }
+      ranked.sort((a, b) => scores[a]!.compareTo(scores[b]!));
+      if (ranked.isNotEmpty) {
+        final keepCount = (ranked.length / 2).ceil().clamp(1, ranked.length);
+        final phase2Indices = ranked.take(keepCount).toList();
+        final phase2Routes =
+            phase2Indices.map((i) => effectiveRoutes[i]).toList();
+        final phase2Elevations =
+            phase2Indices.map((i) => effectiveElevations[i]).toList();
+        return calc.findLeastGradientRoute(
+            phase2Routes, phase2Elevations, currentMethod);
+      }
+    }
+
+    return effectiveRoutes[bestIdx];
+  }
+
+  Map<String, dynamic> _fallbackByElevationsList(
+    List<Map<String, dynamic>> effectiveRoutes,
+    List<List<double>> effectiveElevations,
     String currentMethod,
     String currentStatus,
-  ) async {
-    try {
-      print('=== fetchLeastGradientRoute 開始 ===');
-      print('選択されたステータス: $currentStatus');
-      print('出発地: $origin, 目的地: $destination');
+    GradientCalculator calc,
+  ) {
+    final validIndices = List.generate(effectiveRoutes.length, (i) => i)
+        .where((i) =>
+            i < effectiveElevations.length &&
+            effectiveElevations[i].isNotEmpty)
+        .toList();
+    final gradientRoutes =
+        validIndices.map((i) => effectiveRoutes[i]).toList();
+    final gradientElevations =
+        validIndices.map((i) => effectiveElevations[i]).toList();
 
-      // 1. 複数ルートを取得
-      print('複数ルートを取得中...');
-      final multipleRoutes =
-          await fetchMultipleRoutes(origin, destination, apiKey);
-      print('複数ルート取得完了。ルート数: ${multipleRoutes.length}');
+    if (gradientRoutes.isEmpty) return effectiveRoutes[0];
 
-      final List<List<double>> elevationsList = [];
-
-      // オリジナルルートを取得
-      final originalRoute = multipleRoutes[0];
-      final originalDistance = _calculateTotalDistance(
-          decodePolyline(originalRoute['overview_polyline']['points']));
-      final originalDuration = originalRoute['legs']
-          .fold<double>(0.0, (sum, leg) => sum + leg['duration']['value']);
-
-      print('オリジナルルートの情報: 距離=$originalDistance, 時間=$originalDuration 秒');
-
-      for (final route in multipleRoutes) {
-        try {
-          final polyline = decodePolyline(route['overview_polyline']['points']);
-          print('ルートのポリラインをデコードしました: $polyline');
-          final elevations = await fetchElevationsForPolyline(polyline);
-          elevationsList.add(elevations);
-          print('高度データを取得しました: $elevations');
-        } catch (e) {
-          print('高度データ取得エラー: $e');
-        }
-      }
-
-      // 2. 条件に応じたルートフィルタリング
-      print('条件に基づきルートをフィルタリング中...');
-      List<Map<String, dynamic>> filteredRoutes = _filterRoutesByUserType(
-        currentStatus,
-        multipleRoutes,
-        originalDistance,
-        originalDuration,
-      );
-      print('フィルタリング後のルート数: ${filteredRoutes.length}');
-
-      // 3. 勾配計算またはルート選定
-      print('ステータスに応じたルート選定を実行中...');
-      switch (currentStatus) {
-        case 'runner':
-          print('ランナー: 最も勾配が強いルートを選定中');
-          final selectedRoute = _selectRouteWithHighestGradient(filteredRoutes);
-          print('選定されたルート: $selectedRoute');
-          return selectedRoute;
-
-        case 'traveler':
-          print('トラベラー: 最短距離のルートを選定中');
-          final selectedRoute = _selectShortestRoute(filteredRoutes);
-          print('選定されたルート: $selectedRoute');
-          return selectedRoute;
-
-        case 'bike':
-          print('自転車: APIから新しいルートを取得中');
-          final bikerRoute =
-              await _fetchBikerRoute(origin, destination, apiKey);
-          print('バイカー用ルート取得完了: $bikerRoute');
-          return bikerRoute;
-
-        default:
-          print('デフォルト処理: 勾配が最も緩やかなルートを選定中');
-          final List<List<double>> elevationsList = await Future.wait(
-            filteredRoutes.map((route) async {
-              final polyline =
-                  decodePolyline(route['overview_polyline']['points']);
-              return await fetchElevationsForPolyline(polyline);
-            }),
-          );
-
-          final gradientCalculator = GradientCalculator();
-          final leastGradientRoute = gradientCalculator.findLeastGradientRoute(
-            filteredRoutes,
-            elevationsList,
-            currentStatus,
-          );
-          print('選定された最も緩やかなルート: $leastGradientRoute');
-          return leastGradientRoute;
-      }
-    } catch (e, stackTrace) {
-      print('エラー発生: $e');
-      print('スタックトレース: $stackTrace');
-      throw Exception('ルート計算中にエラーが発生しました: $e');
+    if (currentStatus == 'runner') {
+      return _selectRouteWithHighestGradient(gradientRoutes);
     }
+    if (currentStatus == 'traveler') {
+      return _selectShortestRoute(gradientRoutes);
+    }
+    if (_isExplicitMethod(currentMethod)) {
+      return calc.findLeastGradientRoute(
+          gradientRoutes, gradientElevations, currentMethod);
+    }
+    return gradientRoutes[0];
   }
+
+  static final RegExp _methodPattern = RegExp(r'^method_\d+$');
+  bool _isExplicitMethod(String currentMethod) =>
+      _methodPattern.hasMatch(currentMethod);
 
   Future<LatLng> fetchCoordinatesFromAddress(String address) async {
-    final url =
-        'https://maps.googleapis.com/maps/api/geocode/json?address=$address&mode=walking&key=$apiKey';
-    final response = await http.get(Uri.parse(url));
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['results'] != null && data['results'].isNotEmpty) {
-        final location = data['results'][0]['geometry']['location'];
-        return LatLng(location['lat'], location['lng']);
-      } else {
-        throw Exception('住所の座標が見つかりませんでした');
-      }
-    } else {
-      throw Exception('住所の座標取得エラー: ${response.statusCode}');
-    }
+    return geocodeAddress(address, apiKey);
   }
 
+  // 1ルートにつき最大50サンプルでElevationを取得（リクエスト数を最小化）
   Future<List<double>> fetchElevationsForPolyline(
       List<LatLng> polylinePoints) async {
-    const double segmentDistance = 50.0;
-    final List<LatLng> interpolatedPoints =
-        _interpolatePolyline(polylinePoints, segmentDistance);
-    final List<double> elevations = [];
-
-    for (int i = 0; i < interpolatedPoints.length; i += 500) {
-      final chunk = interpolatedPoints.sublist(
-        i,
-        (i + 500 > interpolatedPoints.length)
-            ? interpolatedPoints.length
-            : i + 500,
-      );
-
-      try {
-        final elevationResults = await _fetchElevations(chunk);
-        elevations.addAll(elevationResults);
-      } catch (e) {
-        print('高度データ取得エラー: $e');
-      }
-    }
-
-    return elevations;
+    if (polylinePoints.isEmpty) return [];
+    // ポリラインから均等に最大50点を間引いてサンプリング
+    const int maxSamples = 50;
+    final List<LatLng> sampled = _samplePoints(polylinePoints, maxSamples);
+    return getElevationAlongPath(sampled, sampled.length, apiKey);
   }
 
-  Future<List<double>> _fetchElevations(List<LatLng> points) async {
-    final locations =
-        points.map((p) => '${p.latitude},${p.longitude}').join('|');
-    final url =
-        'https://maps.googleapis.com/maps/api/elevation/json?locations=$locations&mode=walking&key=$apiKey';
-    final response = await http.get(Uri.parse(url));
+  /// 分割点ピンポイントで高度を取得する（locations 指定方式）。
+  Future<List<double>> fetchElevationsAtPoints(
+      List<LatLng> splitPoints) async {
+    if (splitPoints.isEmpty) return [];
+    return getElevationAtPoints(splitPoints, apiKey);
+  }
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['results'] != null) {
-        return List<double>.from(
-            data['results'].map((result) => result['elevation']));
-      } else {
-        throw Exception('Elevation data not found');
-      }
-    } else {
-      throw Exception('HTTP error: ${response.statusCode}');
+  /// ポリライン全体の距離を segmentCount 等分した地点を返す。
+  /// 始点・終点を含む segmentCount + 1 点のリスト。
+  ///
+  /// _interpolatePolyline で十分細かく補間してから、
+  /// _getIntermediatePath（fraction 位置までの sub-path）の末尾を採用する。
+  /// _getIntermediatePoint はフォールバックとして残す。
+  List<LatLng> extractSplitPoints(List<LatLng> polyline,
+      {int segmentCount = 10}) {
+    if (polyline.isEmpty) return [];
+    if (segmentCount < 1) return [polyline.first];
+    if (polyline.length == 1) {
+      return List.filled(segmentCount + 1, polyline.first);
     }
+
+    final double totalDistance = _calculateTotalDistance(polyline);
+    if (totalDistance == 0) {
+      return List.filled(segmentCount + 1, polyline.first);
+    }
+
+    // index-based fraction が距離-based に近づくよう十分細かく補間する
+    final double interpSegment = totalDistance / (segmentCount * 20);
+    final List<LatLng> interpolated =
+        _interpolatePolyline(polyline, interpSegment);
+    // _interpolatePolyline は最終点を含まないケースがあるため明示的に追加する
+    if (interpolated.isEmpty ||
+        interpolated.last.latitude != polyline.last.latitude ||
+        interpolated.last.longitude != polyline.last.longitude) {
+      interpolated.add(polyline.last);
+    }
+
+    final List<LatLng> result = [];
+    for (int k = 0; k <= segmentCount; k++) {
+      if (k == 0) {
+        result.add(interpolated.first);
+        continue;
+      }
+      if (k == segmentCount) {
+        result.add(interpolated.last);
+        continue;
+      }
+      final double fraction = k / segmentCount;
+      final subPath = _getIntermediatePath(interpolated, fraction);
+      result.add(subPath.isNotEmpty
+          ? subPath.last
+          : _getIntermediatePoint(interpolated, fraction));
+    }
+    return result;
+  }
+
+  List<LatLng> _samplePoints(List<LatLng> points, int maxCount) {
+    if (points.length <= maxCount) return points;
+    final result = <LatLng>[];
+    final step = (points.length - 1) / (maxCount - 1);
+    for (int i = 0; i < maxCount; i++) {
+      result.add(points[(i * step).round().clamp(0, points.length - 1)]);
+    }
+    return result;
   }
 
   List<LatLng> _interpolatePolyline(
@@ -316,35 +352,18 @@ class RouteViewModel extends ChangeNotifier {
 
   Future<Map<String, dynamic>> _fetchOriginalRoute(
       String origin, String destination) async {
-    final url =
-        'https://maps.googleapis.com/maps/api/directions/json?origin=$origin&destination=$destination&key=$apiKey&mode=walking&alternatives=false';
-    final response = await http.get(Uri.parse(url));
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['routes'] != null && data['routes'].isNotEmpty) {
-        return data['routes'][0];
-      } else {
-        throw Exception('ルートが見つかりませんでした');
-      }
-    } else {
-      throw Exception('HTTPエラー: ${response.statusCode}');
-    }
+    final routes = await fetchDirections(origin, destination, false, apiKey);
+    if (routes.isEmpty) throw Exception('ルートが見つかりませんでした');
+    return routes[0];
   }
 
   Future<List<Map<String, dynamic>>> _fetchAlternativeRoutes(
       LatLng point, String destination) async {
-    final url =
-        'https://maps.googleapis.com/maps/api/directions/json?origin=${point.latitude},${point.longitude}&destination=$destination&key=$apiKey&mode=walking&alternatives=true';
-    final response = await http.get(Uri.parse(url));
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['routes'] != null && data['routes'].isNotEmpty) {
-        return List<Map<String, dynamic>>.from(data['routes']);
-      } else {
-        throw Exception('代替ルートが見つかりませんでした');
-      }
-    } else {
-      throw Exception('HTTPエラー: ${response.statusCode}');
+    try {
+      final origin = '${point.latitude},${point.longitude}';
+      return await fetchDirections(origin, destination, true, apiKey);
+    } catch (_) {
+      return [];
     }
   }
 
@@ -356,27 +375,27 @@ class RouteViewModel extends ChangeNotifier {
   List<LatLng> decodePolyline(String encoded) {
     List<LatLng> points = [];
     int index = 0, len = encoded.length;
-    int lat = 0, lng = 0;
+    double lat = 0, lng = 0;
 
     while (index < len) {
-      int b, shift = 0, result = 0;
+      // ビット演算を避け double 算術のみで実装（dart2js の 32-bit 整数制約を回避）
+      double result = 0, multiplier = 1;
+      int b;
       do {
         b = encoded.codeUnitAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-      int dlat = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
-      lat += dlat;
+        result += (b % 32) * multiplier;
+        multiplier *= 32;
+      } while (b >= 32);
+      lat += result % 2 != 0 ? -(result + 1) / 2 : result / 2;
 
-      shift = 0;
       result = 0;
+      multiplier = 1;
       do {
         b = encoded.codeUnitAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-      int dlng = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
-      lng += dlng;
+        result += (b % 32) * multiplier;
+        multiplier *= 32;
+      } while (b >= 32);
+      lng += result % 2 != 0 ? -(result + 1) / 2 : result / 2;
 
       points.add(LatLng(lat / 1E5, lng / 1E5));
     }
@@ -396,7 +415,7 @@ class RouteViewModel extends ChangeNotifier {
           final distance = _calculateTotalDistance(
               decodePolyline(route['overview_polyline']['points']));
           final duration = route['legs']
-              .fold<double>(0.0, (sum, leg) => sum + leg['duration']['value']);
+              .fold<double>(0.0, (double sum, dynamic leg) => sum + (leg['duration']['value'] as num).toDouble());
           return distance <= originalDistance * 1.3 &&
               duration <= originalDuration * 1.3;
         }).toList();
@@ -406,19 +425,19 @@ class RouteViewModel extends ChangeNotifier {
           final distance = _calculateTotalDistance(
               decodePolyline(route['overview_polyline']['points']));
           final duration = route['legs']
-              .fold<double>(0.0, (sum, leg) => sum + leg['duration']['value']);
+              .fold<double>(0.0, (double sum, dynamic leg) => sum + (leg['duration']['value'] as num).toDouble());
           return distance <= originalDistance * 1.7 &&
               duration <= originalDuration * 1.7;
         }).toList();
 
-      case 'Wheelchair':
+      case 'wheelchair':
         // 車イスは条件なし、全ルート対象
         return routes;
 
       case 'senior':
         return routes.where((route) {
           final duration = route['legs']
-              .fold<double>(0.0, (sum, leg) => sum + leg['duration']['value']);
+              .fold<double>(0.0, (double sum, dynamic leg) => sum + (leg['duration']['value'] as num).toDouble());
           return duration <= originalDuration * 1.5;
         }).toList();
 

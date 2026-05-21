@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:challecara/l10n/app_localizations.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../config/providers/status_provider.dart';
 import '../../config/providers/sub_provider.dart';
@@ -44,7 +43,11 @@ class SettingsSub extends ConsumerWidget {
             alignment: Alignment.bottomCenter,
             child: BottomNavigationBar(
               currentIndex: 2, // デフォルトでホームを選択
-              onTap: null, // タップを無効化
+              onTap: (index) {
+                // 選択インデックスを更新してから本画面を閉じ、メイン画面へ戻る
+                ref.read(selectedIndexProvider.notifier).state = index;
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              },
               items: <BottomNavigationBarItem>[
                 BottomNavigationBarItem(
                     icon: const Icon(Icons.table_rows_rounded),
@@ -128,16 +131,8 @@ class DragDropContainer extends HookConsumerWidget {
     switch (labelKey) {
       case 'rain_cloud_radar':
         return localizations.rain_cloud_radar;
-      case 'audio_guidance':
-        return localizations.audio_guidance;
-      case 'simple_translation':
-        return localizations.simple_translation;
-      case 'reviews':
-        return localizations.reviews;
       case 'marathon_course':
         return localizations.marathon_course;
-      case 'securing_evacuation_routes':
-        return localizations.securing_evacuation_routes;
       case 'calorie_count':
         return localizations.calorie_count;
       default:
@@ -175,7 +170,6 @@ class _DragItemState extends State<DragItem> {
           _isActive = true; // タップ時の状態
         });
         widget.onSelect();
-        HapticFeedback.lightImpact();
       },
       onTapUp: (_) {
         setState(() {

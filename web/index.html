@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
   <!--
     If you are serving your web app in a path other than the root, change the
@@ -18,18 +18,176 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="筑豊エリアを歩く・走る・移動するすべての人のためのルート案内＆生活支援アプリ">
+
+  <!-- Google Maps JavaScript API -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDsuwb8Xg0XB7tHfmf5vSvABfXVCIs6Yl0&libraries=geometry"></script>
+  <script>
+    // Flutter から Geocoding を呼ぶブリッジ（Maps JS API の Geocoder 使用）
+    window.geocodeAddress = function(address, callbackName) {
+      new google.maps.Geocoder().geocode(
+        { address: address, region: 'jp', language: 'ja' },
+        function(results, status) {
+          if (status === 'OK' && results.length > 0) {
+            var loc = results[0].geometry.location;
+            window[callbackName](JSON.stringify({ ok: true, lat: loc.lat(), lng: loc.lng() }));
+          } else {
+            window[callbackName](JSON.stringify({ ok: false, status: status }));
+          }
+          delete window[callbackName];
+        }
+      );
+    };
+
+    // Flutter から Directions API を呼ぶためのブリッジ
+    // メインルート(alternatives=false): WALKING → BICYCLING → DRIVING の順でフォールバック
+    // 代替ルート(alternatives=true) : WALKING のみ（失敗しても無害）
+    window.getWalkingDirections = function(origin, destination, alternatives, callbackName) {
+      function parseLocation(loc) {
+        var m = String(loc).match(/^(-?\d+\.?\d*),(-?\d+\.?\d*)$/);
+        if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+        return loc;
+      }
+      function buildRoutes(result) {
+        return result.routes.map(function(r) {
+          var encoded = google.maps.geometry.encoding.encodePath(r.overview_path);
+          return {
+            overview_polyline: { points: encoded },
+            legs: r.legs.map(function(l) {
+              return {
+                distance: { value: l.distance.value, text: l.distance.text },
+                duration: { value: l.duration.value, text: l.duration.text }
+              };
+            })
+          };
+        });
+      }
+      var ds = new google.maps.DirectionsService();
+      var parsedOrigin = parseLocation(origin);
+      var parsedDest = parseLocation(destination);
+      // 代替ルート要求は WALKING のみ試みる（失敗時は呼び元でキャッチ済み）
+      var modes = alternatives
+        ? [google.maps.TravelMode.WALKING]
+        : [google.maps.TravelMode.WALKING, google.maps.TravelMode.BICYCLING, google.maps.TravelMode.DRIVING];
+      var idx = 0;
+      var placeIdTried = false;
+
+      console.log('[Route] origin:', parsedOrigin, 'dest:', parsedDest);
+      function routeWith(dest) {
+        if (idx >= modes.length) {
+          console.log('[Route] 全モード失敗');
+          window[callbackName](JSON.stringify({ status: 'ZERO_RESULTS', routes: [] }));
+          delete window[callbackName];
+          return;
+        }
+        var mode = modes[idx++];
+        console.log('[Route] 試行:', mode, 'dest:', JSON.stringify(dest));
+        ds.route({
+          origin: parsedOrigin,
+          destination: dest,
+          travelMode: mode,
+          provideRouteAlternatives: alternatives
+        }, function(result, status) {
+          console.log('[Route] 結果:', mode, status);
+          if (status === 'OK') {
+            var routes = buildRoutes(result);
+            console.log('[Route] 成功 ポイント数:', routes[0] && routes[0].overview_polyline ? routes[0].overview_polyline.points.length : 0);
+            window[callbackName](JSON.stringify({ status: 'OK', routes: routes }));
+            delete window[callbackName];
+          } else if (mode === google.maps.TravelMode.WALKING && !placeIdTried
+                     && typeof dest === 'object' && dest.lat !== undefined) {
+            // WALKING が座標で失敗 → Place ID 経由で入口にルーティング再試行
+            placeIdTried = true;
+            console.log('[Route] WALKING失敗 → PlaceID取得');
+            new google.maps.Geocoder().geocode({ location: dest, language: 'ja' }, function(gr, gs) {
+              if (gs === 'OK' && gr.length > 0) {
+                console.log('[Route] PlaceID取得成功:', gr[0].place_id, gr[0].formatted_address);
+                ds.route({
+                  origin: parsedOrigin,
+                  destination: { placeId: gr[0].place_id },
+                  travelMode: google.maps.TravelMode.WALKING,
+                  provideRouteAlternatives: alternatives
+                }, function(r2, s2) {
+                  console.log('[Route] WALKING+PlaceID結果:', s2);
+                  if (s2 === 'OK') {
+                    var routes2 = buildRoutes(r2);
+                    console.log('[Route] PlaceID成功 ポイント数:', routes2[0] && routes2[0].overview_polyline ? routes2[0].overview_polyline.points.length : 0);
+                    window[callbackName](JSON.stringify({ status: 'OK', routes: routes2 }));
+                    delete window[callbackName];
+                  } else {
+                    routeWith(parsedDest); // BICYCLING へ
+                  }
+                });
+              } else {
+                console.log('[Route] PlaceID取得失敗:', gs);
+                routeWith(parsedDest); // Geocode失敗 → BICYCLING へ
+              }
+            });
+          } else {
+            routeWith(parsedDest);
+          }
+        });
+      }
+      routeWith(parsedDest);
+    };
+
+    // Flutter から Elevation API を呼ぶブリッジ（1ルート=1リクエスト）
+    window.getElevationAlongPath = function(latlngs, samples, callbackName) {
+      var path = latlngs.map(function(p) { return { lat: p[0], lng: p[1] }; });
+      new google.maps.ElevationService().getElevationAlongPath(
+        { path: path, samples: samples },
+        function(results, status) {
+          if (status === 'OK') {
+            var elevs = results.map(function(r) { return r.elevation; });
+            window[callbackName](JSON.stringify({ ok: true, elevations: elevs }));
+          } else {
+            window[callbackName](JSON.stringify({ ok: false, status: status }));
+          }
+          delete window[callbackName];
+        }
+      );
+    };
+
+    // 点指定（locations）方式の高度取得ブリッジ。分割点ピンポイントで高度が欲しい用途。
+    window.getElevationForLocations = function(latlngs, callbackName) {
+      var locations = latlngs.map(function(p) { return { lat: p[0], lng: p[1] }; });
+      new google.maps.ElevationService().getElevationForLocations(
+        { locations: locations },
+        function(results, status) {
+          if (status === 'OK') {
+            var elevs = results.map(function(r) { return r.elevation; });
+            window[callbackName](JSON.stringify({ ok: true, elevations: elevs }));
+          } else {
+            window[callbackName](JSON.stringify({ ok: false, status: status }));
+          }
+          delete window[callbackName];
+        }
+      );
+    };
+
+  </script>
 
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="challecara">
+  <meta name="apple-mobile-web-app-title" content="アルケール">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>challecara</title>
+  <!-- 日本語フォント（中華フォントへのフォールバックを防止） -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      font-family: "Noto Sans JP", "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+                   "Yu Gothic", "YuGothic", "Meiryo", system-ui, sans-serif;
+    }
+  </style>
+
+  <title>アルケール</title>
   <link rel="manifest" href="manifest.json">
 </head>
 <body>

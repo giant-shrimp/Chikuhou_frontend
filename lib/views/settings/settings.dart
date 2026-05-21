@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:challecara/l10n/app_localizations.dart';
 import '../account/account_information.dart';
 import '../../viewmodels/settings/account_information_viewmodel.dart';
 import 'settings_language.dart';
