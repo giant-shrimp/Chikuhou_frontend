@@ -1,4 +1,3 @@
-<!-- TODO: 共有いただいたスクリーンショットを docs/img/header.png に配置してコメントを外す -->
 <!-- ![ヘッダー画像](docs/img/header.png) -->
 
 <p align="center">
