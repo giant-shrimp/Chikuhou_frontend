@@ -14,6 +14,10 @@ jobs:
       flutter-version: '3.24.5'
    - name: Install packages
      run: flutter pub get
+   - name: Inject API keys
+     shell: bash
+     run: |
+       sed -i "s|__GOOGLE_MAPS_API_KEY__|${{ secrets.GOOGLE_MAPS_API_KEY }}|g" web/index.html
    - name: Linter
      run: flutter analyze
    - name: Test
