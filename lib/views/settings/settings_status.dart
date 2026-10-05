@@ -2,10 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:challecara/l10n/app_localizations.dart';
+import '../../config/providers/status_provider.dart';
+import 'settings_calculation_method.dart';
 
 // 現在のステータスを管理するためのProvider
 final statusProvider = StateProvider<String>((ref) => 'walker'); //初期値:walker
-// ステータス変更用の関数
+// ステータス変更用の関数（おすすめの勾配計算手法も自動で設定する）
+void _selectStatus(WidgetRef ref, String status) {
+  ref.read(statusProvider.notifier).state = status;
+  final methods = recommendedMethodsByStatus[status];
+  if (methods != null && methods.isNotEmpty) {
+    ref.read(methodProvider.notifier).state = methods.first;
+  }
+}
+
 class SettingsStatus extends HookConsumerWidget {
   const SettingsStatus({super.key});
 
@@ -31,7 +41,7 @@ class SettingsStatus extends HookConsumerWidget {
                     ? const Icon(Icons.done, color: Colors.blue) // Walker選択時にチェックマーク
                     : null,
                 onPressed: (context) {
-                  ref.read(statusProvider.notifier).state = 'walker';  // Walkerに変更
+                  _selectStatus(ref, 'walker');  // Walkerに変更
                 },
               ),
               SettingsTile(
@@ -41,7 +51,7 @@ class SettingsStatus extends HookConsumerWidget {
                     ? const Icon(Icons.done, color: Colors.blue) // Runner選択時にチェックマーク
                     : null,
                 onPressed: (context) {
-                  ref.read(statusProvider.notifier).state = 'runner';  // Runnerに変更
+                  _selectStatus(ref, 'runner');  // Runnerに変更
                 },
               ),
               SettingsTile(
@@ -52,7 +62,7 @@ class SettingsStatus extends HookConsumerWidget {
                     ? const Icon(Icons.done, color: Colors.blue) // Senior選択時にチェックマーク
                     : null,
                 onPressed: (context) {
-                  ref.read(statusProvider.notifier).state = 'senior';  // Seniorに変更
+                  _selectStatus(ref, 'senior');  // Seniorに変更
                 },
               ),
               SettingsTile(
@@ -62,7 +72,7 @@ class SettingsStatus extends HookConsumerWidget {
                     ? const Icon(Icons.done, color: Colors.blue) // Bike選択時にチェックマーク
                     : null,
                 onPressed: (context) {
-                  ref.read(statusProvider.notifier).state = 'bike';  // Bikeに変更
+                  _selectStatus(ref, 'bike');  // Bikeに変更
                 },
               ),
               SettingsTile(
@@ -72,7 +82,7 @@ class SettingsStatus extends HookConsumerWidget {
                     ? const Icon(Icons.done, color: Colors.blue) // Wheelchair選択時にチェックマーク
                     : null,
                 onPressed: (context) {
-                  ref.read(statusProvider.notifier).state = 'wheelchair';  // Wheelchairに変更
+                  _selectStatus(ref, 'wheelchair');  // Wheelchairに変更
                 },
               ),
               SettingsTile(
@@ -83,7 +93,7 @@ class SettingsStatus extends HookConsumerWidget {
                     ? const Icon(Icons.done, color: Colors.blue) // Stroller選択時にチェックマーク
                     : null,
                 onPressed: (context) {
-                  ref.read(statusProvider.notifier).state = 'stroller';  // Strollerに変更
+                  _selectStatus(ref, 'stroller');  // Strollerに変更
                 },
               ),
               SettingsTile(
@@ -93,7 +103,7 @@ class SettingsStatus extends HookConsumerWidget {
                     ? const Icon(Icons.done, color: Colors.blue) // Traveler選択時にチェックマーク
                     : null,
                 onPressed: (context) {
-                  ref.read(statusProvider.notifier).state = 'traveler';  // Travelerに変更
+                  _selectStatus(ref, 'traveler');  // Travelerに変更
                 },
               ),
             ],

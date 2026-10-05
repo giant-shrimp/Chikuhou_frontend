@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:challecara/l10n/app_localizations.dart';
 import '../widgets/common/custom_calculation_modal.dart';
 import 'settings_status.dart';
+import '../../config/providers/status_provider.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
 // 現在のステータスを管理するためのProvider
@@ -18,6 +19,8 @@ class SettingsCalculationMethod extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentMethod = ref.watch(methodProvider);
     final currentStatus = ref.watch(statusProvider);
+    final recommendedMethods = recommendedMethodsByStatus[currentStatus] ?? const [];
+    bool isRecommended(String method) => recommendedMethods.contains(method);
 
     // 点滅を管理する状態
     final isRed = useState(true);
@@ -59,7 +62,7 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                 leading: const Icon(Icons.filter_1),
                 title: AnimatedDefaultTextStyle(
                   style: TextStyle(
-                    color: ((currentStatus == 'runner' || currentStatus == 'bike') && isRed.value)
+                    color: (isRecommended('method_1') && isRed.value)
                         ? Colors.red
                         : Colors.black,
                     fontSize: 16,
@@ -112,7 +115,7 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                 leading: const Icon(Icons.filter_2),
                 title: AnimatedDefaultTextStyle(
                   style: TextStyle(
-                    color: ((currentStatus == 'senior' || currentStatus == 'bike' || currentStatus == 'stroller' || currentStatus == 'wheelchair') && isRed.value)
+                    color: (isRecommended('method_2') && isRed.value)
                         ? Colors.red
                         : Colors.black,
                     fontSize: 16,
@@ -176,7 +179,7 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                 leading: const Icon(Icons.filter_3),
                 title: AnimatedDefaultTextStyle(
                   style: TextStyle(
-                    color: ((currentStatus == 'walker' || currentStatus == 'runner' || currentStatus == 'traveler') && isRed.value)
+                    color: (isRecommended('method_3') && isRed.value)
                         ? Colors.red
                         : Colors.black,
                     fontSize: 16,
@@ -235,7 +238,7 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                 leading: const Icon(Icons.filter_4),
                 title: AnimatedDefaultTextStyle(
                   style: TextStyle(
-                    color: ((currentStatus == 'bike' || currentStatus == 'wheelchair') && isRed.value)
+                    color: (isRecommended('method_4') && isRed.value)
                         ? Colors.red
                         : Colors.black,
                     fontSize: 16,
@@ -307,7 +310,7 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                 leading: const Icon(Icons.filter_5),
                 title: AnimatedDefaultTextStyle(
                   style: TextStyle(
-                    color: ((currentStatus == 'runner' || currentStatus == 'senior' || currentStatus == 'bike') && isRed.value)
+                    color: (isRecommended('method_5') && isRed.value)
                         ? Colors.red
                         : Colors.black,
                     fontSize: 16,
@@ -374,7 +377,7 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                 leading: const Icon(Icons.filter_6),
                 title: AnimatedDefaultTextStyle(
                   style: TextStyle(
-                    color: ((currentStatus == 'senior' || currentStatus == 'bike' || currentStatus == 'stroller') && isRed.value)
+                    color: (isRecommended('method_6') && isRed.value)
                         ? Colors.red
                         : Colors.black,
                     fontSize: 16,
@@ -436,7 +439,7 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                 leading: const Icon(Icons.filter_7),
                 title: AnimatedDefaultTextStyle(
                   style: TextStyle(
-                    color: ((currentStatus == 'runner' || currentStatus == 'bike') && isRed.value)
+                    color: (isRecommended('method_7') && isRed.value)
                         ? Colors.red
                         : Colors.black,
                     fontSize: 16,
@@ -493,7 +496,7 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                 leading: const Icon(Icons.filter_8),
                 title: AnimatedDefaultTextStyle(
                   style: TextStyle(
-                    color: ((currentStatus == 'walker' || currentStatus == 'runner' || currentStatus == 'bike' || currentStatus == 'traveler') && isRed.value)
+                    color: (isRecommended('method_8') && isRed.value)
                         ? Colors.red
                         : Colors.black,
                     fontSize: 16,
@@ -557,7 +560,7 @@ class SettingsCalculationMethod extends HookConsumerWidget {
                 leading: const Icon(Icons.filter_9),
                 title: AnimatedDefaultTextStyle(
                   style: TextStyle(
-                    color: ((currentStatus == 'senior' || currentStatus == 'stroller' || currentStatus == 'wheelchair') && isRed.value)
+                    color: (isRecommended('method_9') && isRed.value)
                         ? Colors.red
                         : Colors.black,
                     fontSize: 16,

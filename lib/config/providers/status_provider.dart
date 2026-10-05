@@ -31,3 +31,16 @@ Map<String, dynamic> getStatusDetails(
 
   return {'icon': statusIcon, 'text': statusText};
 }
+
+
+// ステータスごとのおすすめ勾配計算手法（勾配計算画面で赤字強調表示される）
+// ステータス選択時は先頭の手法が自動で選択される
+const Map<String, List<String>> recommendedMethodsByStatus = {
+  'walker': ['method_3', 'method_8'],
+  'runner': ['method_1', 'method_3', 'method_5', 'method_7', 'method_8'],
+  'senior': ['method_2', 'method_5', 'method_6', 'method_9'],
+  'bike': ['method_1', 'method_2', 'method_4', 'method_5', 'method_6', 'method_7', 'method_8'],
+  'wheelchair': ['method_2', 'method_4', 'method_9'],
+  'stroller': ['method_2', 'method_6', 'method_9'],
+  'traveler': ['method_3', 'method_8'],
+};
